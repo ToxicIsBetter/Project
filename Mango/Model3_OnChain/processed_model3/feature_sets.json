@@ -1,0 +1,33 @@
+{
+  "onchain_boruta": [],
+  "onchain_lasso": [
+    "AdrBalCnt",
+    "BlkCnt",
+    "SplyExNtv",
+    "FeeTotNtv",
+    "FlowInExNtv",
+    "TxCnt_growth7d"
+  ],
+  "final_h1": [
+    "AdrBalCnt",
+    "BlkCnt",
+    "SplyExNtv",
+    "FeeTotNtv",
+    "FlowInExNtv",
+    "TxCnt_growth7d"
+  ],
+  "sentiment": [
+    "google_trends",
+    "gt_ma7",
+    "gt_ma30",
+    "gt_change7",
+    "gt_momentum",
+    "fear_greed",
+    "fg_ma7",
+    "fg_ma14",
+    "fg_change",
+    "fg_change7",
+    "fg_extreme_fear",
+    "fg_extreme_greed"
+  ]
+}
