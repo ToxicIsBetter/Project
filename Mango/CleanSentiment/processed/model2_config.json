@@ -1,0 +1,21 @@
+{
+  "model": "DualHeadTransformer",
+  "name": "Model 2 \u2014 CleanSentiment (Google Trends + Santiment + F&G)",
+  "start_date": "2013-01-01",
+  "train_end": "2022-12-31",
+  "val_end": "2023-12-31",
+  "seq_len": 5,
+  "d_model": 64,
+  "nhead": 4,
+  "num_layers": 2,
+  "dropout": 0.3,
+  "n_head1_features": 8,
+  "n_head2_features": 14,
+  "sentiment_sources": [
+    "Google Trends (2013+)",
+    "Fear & Greed (2018+)"
+  ],
+  "feature_selection": "Boruta (primary), LASSO (secondary)",
+  "accuracy": 0.4993788819875776,
+  "f1": 0.43793584379358436
+}

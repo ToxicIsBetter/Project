@@ -1,0 +1,8 @@
+RSI_14
+RSI_21
+return_14d
+Stoch_K
+FeeTotNtv
+vol_60d
+Stoch_D
+fg_change7

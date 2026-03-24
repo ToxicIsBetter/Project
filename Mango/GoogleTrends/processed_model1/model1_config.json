@@ -1,0 +1,22 @@
+{
+  "model": "DualHeadTransformer",
+  "name": "Model 1 \u2014 Baseline Sentiment (2018-2026)",
+  "start_date": "2018-02-01",
+  "train_end": "2022-12-31",
+  "val_end": "2023-12-31",
+  "seq_len": 5,
+  "d_model": 64,
+  "nhead": 4,
+  "num_layers": 2,
+  "dropout": 0.3,
+  "n_head1_features": 3,
+  "n_head2_features": 12,
+  "sentiment_sources": [
+    "Google Trends (2018+)",
+    "Fear & Greed (2018+)"
+  ],
+  "feature_selection": "Boruta (primary), LASSO (secondary)",
+  "note": "No availability masks \u2014 all sentiment sources real from start date",
+  "accuracy": 0.5204968944099378,
+  "f1": 0.24313725490196078
+}
