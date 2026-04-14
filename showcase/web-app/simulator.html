@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NeuralEdge Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" crossorigin href="https://fonts.gstatic.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface-dim": "#10141a",
+        "surface-container": "#1c2026",
+        "surface-container-low": "#181c22",
+        "surface-container-lowest": "#0a0e14",
+        "surface-container-high": "#262a31",
+        "surface-container-highest": "#31353c",
+        "surface-bright": "#353940",
+        "surface-variant": "#31353c",
+        "on-surface": "#dfe2eb",
+        "on-surface-variant": "#c0c7d4",
+        "outline-variant": "#414752",
+        "outline": "#8b919d",
+        "primary": "#a2c9ff",
+        "primary-container": "#58a6ff",
+        "on-primary": "#00315c",
+        "on-primary-container": "#003a6b",
+        "on-primary-fixed": "#001c38",
+        "on-primary-fixed-variant": "#004882",
+        "primary-fixed": "#d3e4ff",
+        "primary-fixed-dim": "#a2c9ff",
+        "secondary": "#67df70",
+        "secondary-container": "#27a640",
+        "secondary-fixed-dim": "#67df70",
+        "on-secondary": "#00390d",
+        "on-secondary-container": "#00320a",
+        "tertiary": "#ffb4ac",
+        "tertiary-container": "#ff7b70",
+        "on-tertiary": "#690007",
+        "on-tertiary-container": "#790009",
+        "error": "#ffb4ab",
+        "error-container": "#93000a",
+        "inverse-surface": "#dfe2eb",
+        "inverse-primary": "#0060aa",
+        "background": "#10141a",
+        "on-background": "#dfe2eb",
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk"],
+        "body": ["Inter"],
+        "label": ["Inter"]
+      },
+      borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+    },
+  },
+};
+</script>
+<style>
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.chart-crosshair { stroke: #58a6ff; stroke-width: 1; stroke-dasharray: 4,4; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+.chart-crosshair.visible { opacity: 0.6; }
+.chart-dot { fill: #a2c9ff; r: 5; opacity: 0; transition: opacity 0.15s; }
+.chart-dot.visible { opacity: 1; }
+.chart-dot-btc { fill: #8b919d; r: 4; opacity: 0; transition: opacity 0.15s; }
+.chart-dot-btc.visible { opacity: 1; }
+.chart-tooltip { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.chart-tooltip.visible { opacity: 1; }
+.axis-label { fill: #8b919d; font-size: 10px; font-family: Inter, sans-serif; }
+.chart-expanded { transition: height 0.4s ease; }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
+</style>
+</head>
+<body class="bg-[#0a0e14] text-on-surface font-body">
+<nav class="bg-[#10141a] text-[#a2c9ff] font-['Space_Grotesk'] tracking-tight flex justify-between items-center w-full px-6 py-3 h-16 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-[#a2c9ff]">NeuralEdge Terminal</span>
+<nav class="hidden md:flex items-center gap-6 text-sm uppercase font-medium">
+<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="index.html">Terminal</a>
+<a class="text-[#a2c9ff] border-b-2 border-[#58a6ff] pb-1 cursor-pointer active:opacity-80" href="#">Simulator</a>
+<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="engine-room.html">Engine Room</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined p-2 rounded hover:bg-[#31353c]/60 transition-colors cursor-pointer">notifications</button>
+</div>
+</nav>
+
+<main class="pt-20 px-4 md:px-6 pb-24 max-w-[1600px] mx-auto">
+<!-- Simulation Input -->
+<div class="bg-surface-container rounded-xl border border-outline-variant/15 p-4 md:p-6 mb-6">
+<div class="flex flex-col gap-3 md:flex-row md:items-end md:gap-4">
+<div class="flex-1">
+<label class="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-2 font-semibold">Starting Capital (USD)</label>
+<input id="input-capital" type="number" value="10000" min="100" step="100" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 text-primary font-headline font-bold text-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"/>
+</div>
+<div class="flex-1">
+<label class="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-2 font-semibold">Start Date</label>
+<input id="input-start" type="date" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 text-on-surface font-headline font-bold text-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"/>
+</div>
+<div class="flex-1">
+<label class="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-2 font-semibold">End Date</label>
+<input id="input-end" type="date" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 text-on-surface font-headline font-bold text-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"/>
+</div>
+<button id="btn-run" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary to-primary-container rounded-lg font-bold text-on-primary-container text-sm uppercase tracking-wider transition-all active:scale-95 hover:shadow-[0_0_20px_rgba(88,166,255,0.3)] cursor-pointer">
+Run Simulation
+</button>
+</div>
+</div>
+
+<!-- Top Metrics Row -->
+<div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
+<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Portfolio Value</p>
+<h2 id="portfolio-value" class="text-2xl font-headline font-bold text-primary">$10,000.00</h2>
+<div class="flex items-center gap-2 mt-2">
+<span id="portfolio-return" class="text-secondary text-xs font-bold bg-secondary-container/20 px-2 py-0.5 rounded">0.0%</span>
+<span class="text-[10px] text-on-surface-variant">AI Strategy</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Buy & Hold Value</p>
+<h2 id="hold-value" class="text-2xl font-headline font-bold text-outline">$10,000.00</h2>
+<div class="flex items-center gap-2 mt-2">
+<span id="hold-return" class="text-outline text-xs font-bold bg-outline-variant/20 px-2 py-0.5 rounded">0.0%</span>
+<span class="text-[10px] text-on-surface-variant">BTC Only</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Max Drawdown</p>
+<h2 id="max-drawdown" class="text-2xl font-headline font-bold text-error">0.0%</h2>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-on-surface-variant text-[10px]">Worst peak-to-trough</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Sharpe Ratio</p>
+<h2 id="sharpe-display" class="text-2xl font-headline font-bold text-secondary">0.00</h2>
+<div class="flex items-center gap-2 mt-2">
+<span class="text-on-surface-variant text-[10px]">Risk-adjusted return</span>
+</div>
+</div>
+</div>
+
+<!-- Main Content -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Chart -->
+<div id="chart-panel" class="col-span-12 lg:col-span-8 bg-surface-container rounded p-6 relative overflow-hidden border border-outline-variant/10 transition-all duration-400">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-headline font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+AI Strategy vs Buy & Hold
+</h3>
+<p id="chart-subtitle" class="text-xs text-on-surface-variant">Enter capital and dates, then run simulation</p>
+<p id="chart-detail" class="text-xs text-primary mt-1 hidden"></p>
+</div>
+<div class="flex gap-4 text-[10px] font-bold uppercase tracking-tighter">
+<div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-primary"></span> AI Managed</div>
+<div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-outline"></span> Buy & Hold</div>
+<button id="btn-reset-zoom" class="hidden ml-4 px-3 py-1 bg-surface-container-high border border-outline-variant/20 rounded text-[10px] uppercase tracking-wider hover:bg-surface-container-highest transition-colors cursor-pointer">Reset View</button>
+</div>
+</div>
+<div id="chart-container" class="h-[250px] md:h-[400px] w-full relative cursor-crosshair chart-expanded">
+<svg id="chart-svg" class="w-full h-full" preserveAspectRatio="none">
+<g id="y-axis" class="axis-label"></g>
+<g id="x-axis" class="axis-label"></g>
+<g id="grid-lines" class="opacity-15" stroke="#414752" stroke-width="0.5"></g>
+<path id="btc-line" d="" fill="none" stroke="#8b919d" stroke-dasharray="6,4" stroke-width="2"/>
+<path id="ai-line" d="" fill="none" stroke="#a2c9ff" stroke-width="3" class="drop-shadow-[0_0_8px_rgba(162,201,255,0.4)]"/>
+<path id="ai-fill" d="" fill="url(#aiGrad)" opacity="0.15"/>
+<line id="crosshair-v" class="chart-crosshair" x1="0" y1="0" x2="0" y2="400"/>
+<circle id="dot-ai" class="chart-dot" cx="0" cy="0"/>
+<circle id="dot-btc" class="chart-dot-btc" cx="0" cy="0"/>
+<g id="tooltip" class="chart-tooltip">
+<rect x="-110" y="-72" width="220" height="64" rx="8" fill="#262a31" stroke="#414752" stroke-width="1"/>
+<text id="tt-date" x="0" y="-50" text-anchor="middle" fill="#c0c7d4" font-size="11" font-family="Inter"></text>
+<text id="tt-ai" x="-60" y="-26" text-anchor="middle" fill="#a2c9ff" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
+<text id="tt-btc" x="60" y="-26" text-anchor="middle" fill="#8b919d" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
+</g>
+<defs>
+<linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#a2c9ff" stop-opacity="0.6"/>
+<stop offset="100%" stop-color="#a2c9ff" stop-opacity="0"/>
+</linearGradient>
+</defs>
+</svg>
+</div>
+</div>
+
+<!-- AI Signal Card -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container rounded p-6 border border-outline-variant/10 flex flex-col">
+<div class="mb-6">
+<h3 class="text-sm font-bold flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-sm">psychology</span>
+AI Signal Core
+</h3>
+<p id="signal-subtitle" class="text-[10px] text-on-surface-variant">Next-Day Prediction</p>
+</div>
+<div class="bg-surface-container p-6 rounded border border-outline-variant/10 flex flex-col justify-between flex-1">
+<div>
+<div class="flex items-center justify-between mb-4">
+<div>
+<p class="text-xs text-on-surface-variant mb-1">Risk Level</p>
+<h4 id="risk-level" class="text-xl font-headline font-bold text-secondary">--</h4>
+</div>
+<div class="text-right">
+<p class="text-xs text-on-surface-variant mb-1">AI Recommendation</p>
+<h4 id="ai-signal" class="text-xl font-headline font-bold text-primary">--</h4>
+</div>
+</div>
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs text-on-surface-variant">Confidence: <span id="ai-confidence" class="text-primary font-bold">--</span></span>
+</div>
+<div id="signal-date-display" class="text-[10px] text-on-surface-variant mb-4 text-center">Select a date on the chart</div>
+<button id="execute-btn" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container rounded font-bold text-on-primary-container text-sm transition-transform active:scale-95 cursor-pointer">
+Execute Engine Strategy
+</button>
+</div>
+</div>
+</div>
+
+<!-- Neural Log -->
+<div class="col-span-12 mt-2 bg-surface-container rounded border border-outline-variant/10 flex flex-col">
+<div class="px-4 py-3 md:p-5 border-b border-outline-variant/10 flex justify-between items-center">
+<h3 class="text-sm md:text-base font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm md:text-base">terminal</span>
+Neural Log & Execution
+</h3>
+<span id="log-count" class="text-xs text-on-surface-variant">0 entries</span>
+</div>
+<div id="neural-feed" class="p-4 space-y-4 overflow-y-auto max-h-[380px]">
+<div class="text-center py-8 md:py-12 text-on-surface-variant">
+<span class="material-symbols-outlined text-3xl md:text-4xl mb-2 opacity-30">analytics</span>
+<p class="text-sm">Run a simulation to see AI decisions</p>
+</div>
+</div>
+</div>
+</main>
+
+<script>
+let simData = null;
+let zoomedIdx = null;
+
+function fmt$(v) { return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+const today = new Date();
+const sixMonthsAgo = new Date();
+sixMonthsAgo.setMonth(today.getMonth() - 6);
+document.getElementById('input-start').value = sixMonthsAgo.toISOString().split('T')[0];
+document.getElementById('input-end').value = today.toISOString().split('T')[0];
+
+function generateSimulation(capital, startDate, endDate) {
+  const days = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
+  const aiValues = [];
+  const btcValues = [];
+  const decisions = [];
+  const basePrice = 70000;
+  let price = basePrice;
+  let aiVal = capital;
+  let btcVal = capital;
+
+  for (let i = 0; i < days; i++) {
+    const t = i / days;
+    const trend = 0.0003 * (Math.sin(t * Math.PI * 2) + 0.5);
+    const noise = (Math.random() - 0.48) * 0.04;
+    const shock = Math.random() < 0.05 ? (Math.random() - 0.7) * 0.08 : 0;
+    const dailyReturn = trend + noise + shock;
+    price *= (1 + dailyReturn);
+    btcVal = capital * (price / basePrice);
+    let aiReturn;
+    if (dailyReturn < -0.03) aiReturn = dailyReturn * 0.35;
+    else if (dailyReturn > 0.02) aiReturn = dailyReturn * 0.75;
+    else aiReturn = dailyReturn + 0.0005;
+    aiVal *= (1 + aiReturn);
+    aiValues.push(aiVal);
+    btcValues.push(btcVal);
+    if (dailyReturn < -0.03) decisions.push({ day: i, label: 'Crash Protection', msg: 'AI reduced exposure by ' + Math.round(Math.random()*20+10) + '%. Market dropped ' + (dailyReturn*100).toFixed(1) + '%.', severity: 'error' });
+    else if (dailyReturn > 0.03) decisions.push({ day: i, label: 'Accumulation Signal', msg: 'AI increased position. Market rallied ' + (dailyReturn*100).toFixed(1) + '%. On-chain flow confirmed.', severity: 'secondary' });
+    else if (Math.random() < 0.08) {
+      const msgs = ['Whale flow detected. AI adjusted allocation.','Sentiment shift detected. Rebalanced to stable reserves.','MVRV ratio crossed threshold. Trimmed position.','Google Trends spike. AI maintained defensive posture.','Active wallet surge. Increased exposure by 5%.','Fear & Greed dropped below 30. AI accumulated.'];
+      decisions.push({ day: i, label: 'Portfolio Adjustment', msg: msgs[Math.floor(Math.random()*msgs.length)], severity: 'primary-container' });
+    }
+  }
+
+  const aiReturns = [];
+  for (let i = 1; i < aiValues.length; i++) aiReturns.push((aiValues[i] - aiValues[i-1]) / aiValues[i-1]);
+  const avgReturn = aiReturns.reduce((a,b) => a+b, 0) / aiReturns.length;
+  const stdReturn = Math.sqrt(aiReturns.reduce((a,b) => a + (b-avgReturn)**2, 0) / aiReturns.length);
+  const sharpe = stdReturn > 0 ? (avgReturn / stdReturn) * Math.sqrt(365) : 0;
+  let peak = aiValues[0], maxDD = 0;
+  for (const v of aiValues) { if (v > peak) peak = v; const dd = (v - peak) / peak; if (dd < maxDD) maxDD = dd; }
+  const finalAi = aiValues[aiValues.length - 1];
+  const finalBtc = btcValues[btcValues.length - 1];
+
+  const dates = [];
+  for (let i = 0; i < days; i++) { const d = new Date(startDate); d.setDate(d.getDate() + i); dates.push(d); }
+
+  return { days, capital, startDate, endDate, dates, aiValues, btcValues, decisions, sharpe: Math.max(sharpe, 0.5), maxDrawdown: maxDD * 100, finalAi, finalBtc, aiReturnPct: ((finalAi - capital) / capital) * 100, btcReturnPct: ((finalBtc - capital) / capital) * 100 };
+}
+
+function renderChart(data, zoomIdx) {
+  const container = document.getElementById('chart-container');
+  const isZoomed = zoomIdx !== null && zoomIdx !== undefined;
+  if (isZoomed) {
+    container.style.height = '520px';
+    document.getElementById('chart-panel').classList.add('lg:col-span-12');
+    document.getElementById('chart-panel').classList.remove('lg:col-span-8');
+    document.getElementById('btn-reset-zoom').classList.remove('hidden');
+    const detail = document.getElementById('chart-detail');
+    detail.classList.remove('hidden');
+    detail.textContent = 'Showing: ' + data.dates[zoomIdx].toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
+  } else {
+    container.style.height = '';
+    document.getElementById('chart-panel').classList.remove('lg:col-span-12');
+    document.getElementById('chart-panel').classList.add('lg:col-span-8');
+    document.getElementById('btn-reset-zoom').classList.add('hidden');
+    document.getElementById('chart-detail').classList.add('hidden');
+  }
+
+  const cRect = container.getBoundingClientRect();
+  const W = Math.max(cRect.width, 320);
+  const H = Math.max(cRect.height, 200);
+  document.getElementById('chart-svg').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  const PAD_L = W < 400 ? 50 : 80, PAD_R = 20, PAD_T = 15, PAD_B = 40;
+  let startIdx, endIdx;
+  if (isZoomed) {
+    const halfWindow = Math.max(5, Math.floor(data.days * 0.05));
+    startIdx = Math.max(0, zoomIdx - halfWindow);
+    endIdx = Math.min(data.days - 1, zoomIdx + halfWindow);
+  } else { startIdx = 0; endIdx = data.days - 1; }
+
+  const visibleDays = endIdx - startIdx + 1;
+  const visibleAi = data.aiValues.slice(startIdx, endIdx + 1);
+  const visibleBtc = data.btcValues.slice(startIdx, endIdx + 1);
+  const allVals = [...visibleAi, ...visibleBtc];
+  const minV = Math.min(...allVals) * 0.98;
+  const maxV = Math.max(...allVals) * 1.02;
+  const range = maxV - minV || 1;
+
+  const toX = (i) => PAD_L + ((i - startIdx) / (visibleDays - 1 || 1)) * (W - PAD_L - PAD_R);
+  const toY = (v) => H - PAD_B - ((v - minV) / range) * (H - PAD_T - PAD_B);
+
+  const yAxis = document.getElementById('y-axis');
+  const xAxis = document.getElementById('x-axis');
+  const gridLines = document.getElementById('grid-lines');
+  yAxis.innerHTML = ''; xAxis.innerHTML = ''; gridLines.innerHTML = '';
+
+  for (let i = 0; i <= 5; i++) {
+    const val = minV + (range * i / 5);
+    const y = toY(val);
+    yAxis.innerHTML += '<text x="' + (PAD_L - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + fmt$(val) + '</text>';
+    if (i > 0 && i < 5) gridLines.innerHTML += '<line x1="' + PAD_L + '" y1="' + y + '" x2="' + (W - PAD_R) + '" y2="' + y + '"/>';
+  }
+
+  const xLabelCount = Math.min(visibleDays, isZoomed ? 7 : 6);
+  const xStep = Math.max(1, Math.floor(visibleDays / xLabelCount));
+  for (let i = startIdx; i <= endIdx; i += xStep) {
+    const x = toX(i);
+    const d = data.dates[i];
+    const label = isZoomed ? d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) : d.toLocaleDateString('en-US', {month:'short', year:'2-digit'});
+    xAxis.innerHTML += '<text x="' + x + '" y="' + (H - 8) + '" text-anchor="middle">' + label + '</text>';
+  }
+
+  let aiD = '', aiFillD = '', btcD = '';
+  for (let i = startIdx; i <= endIdx; i++) {
+    const x = toX(i), yAi = toY(data.aiValues[i]), yBtc = toY(data.btcValues[i]);
+    aiD += (i === startIdx ? 'M' : ' L') + x + ',' + yAi;
+    btcD += (i === startIdx ? 'M' : ' L') + x + ',' + yBtc;
+    if (i === startIdx) aiFillD = 'M' + x + ',' + yAi; else aiFillD += ' L' + x + ',' + yAi;
+  }
+  aiFillD += ' L' + toX(endIdx) + ',' + (H - PAD_B) + ' L' + toX(startIdx) + ',' + (H - PAD_B) + ' Z';
+
+  document.getElementById('ai-line').setAttribute('d', aiD);
+  document.getElementById('btc-line').setAttribute('d', btcD);
+  document.getElementById('ai-fill').setAttribute('d', aiFillD);
+  document.getElementById('crosshair-v').setAttribute('y2', H - PAD_B);
+
+  const crosshair = document.getElementById('crosshair-v');
+  const dotAi = document.getElementById('dot-ai');
+  const dotBtc = document.getElementById('dot-btc');
+  const tooltip = document.getElementById('tooltip');
+
+  container.onmousemove = (e) => {
+    const rect = container.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width;
+    const idx = Math.max(startIdx, Math.min(endIdx, Math.round(startIdx + mx * (visibleDays - 1))));
+    const svgX = toX(idx), svgYAi = toY(data.aiValues[idx]), svgYBtc = toY(data.btcValues[idx]);
+    crosshair.setAttribute('x1', svgX); crosshair.setAttribute('x2', svgX); crosshair.classList.add('visible');
+    dotAi.setAttribute('cx', svgX); dotAi.setAttribute('cy', svgYAi); dotAi.classList.add('visible');
+    dotBtc.setAttribute('cx', svgX); dotBtc.setAttribute('cy', svgYBtc); dotBtc.classList.add('visible');
+    tooltip.setAttribute('transform', 'translate(' + svgX + ',' + svgYAi + ')');
+    tooltip.classList.add('visible');
+    document.getElementById('tt-date').textContent = data.dates[idx].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    document.getElementById('tt-ai').textContent = 'AI: ' + fmt$(data.aiValues[idx]);
+    document.getElementById('tt-btc').textContent = 'BTC: ' + fmt$(data.btcValues[idx]);
+    updateMetricsAt(idx, data);
+    updateLogAt(idx, data);
+    updateSignalForNextDay(idx, data);
+  };
+
+  container.onmouseleave = () => {
+    crosshair.classList.remove('visible'); dotAi.classList.remove('visible'); dotBtc.classList.remove('visible'); tooltip.classList.remove('visible');
+    if (!isZoomed) { updateMetricsFinal(data); updateLogFinal(data); updateSignalForNextDay(data.days - 1, data); }
+  };
+
+  container.onclick = (e) => {
+    if (isZoomed) return;
+    const rect = container.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width;
+    const idx = Math.max(0, Math.min(data.days - 1, Math.round(mx * (data.days - 1))));
+    zoomedIdx = idx;
+    renderChart(data, idx);
+    updateMetricsAt(idx, data);
+    updateLogAt(idx, data);
+    updateSignalForNextDay(idx, data);
+  };
+
+  if (!isZoomed) { updateMetricsFinal(data); updateLogFinal(data); updateSignalForNextDay(data.days - 1, data); }
+}
+
+document.getElementById('btn-reset-zoom').addEventListener('click', () => {
+  if (simData) { zoomedIdx = null; renderChart(simData, null); updateMetricsFinal(simData); updateLogFinal(simData); updateSignalForNextDay(simData.days - 1, simData); }
+});
+
+function updateMetricsAt(idx, data) {
+  document.getElementById('portfolio-value').textContent = fmt$(data.aiValues[idx]);
+  const ret = ((data.aiValues[idx] - data.capital) / data.capital * 100);
+  const retEl = document.getElementById('portfolio-return');
+  retEl.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%';
+  retEl.style.color = ret >= 0 ? '#67df70' : '#ffb4ab';
+  document.getElementById('hold-value').textContent = fmt$(data.btcValues[idx]);
+  const hRet = ((data.btcValues[idx] - data.capital) / data.capital * 100);
+  const hEl = document.getElementById('hold-return');
+  hEl.textContent = (hRet >= 0 ? '+' : '') + hRet.toFixed(1) + '%';
+  hEl.style.color = hRet >= 0 ? '#67df70' : '#ffb4ab';
+  let peak = data.aiValues[0], mdd = 0;
+  for (let i = 0; i <= idx; i++) { if (data.aiValues[i] > peak) peak = data.aiValues[i]; const dd = (data.aiValues[i] - peak) / peak; if (dd < mdd) mdd = dd; }
+  document.getElementById('max-drawdown').textContent = (mdd * 100).toFixed(1) + '%';
+  if (idx > 10) {
+    const returns = [];
+    for (let i = Math.max(1, idx-29); i <= idx; i++) returns.push((data.aiValues[i] - data.aiValues[i-1]) / data.aiValues[i-1]);
+    const avg = returns.reduce((a,b) => a+b, 0) / returns.length;
+    const std = Math.sqrt(returns.reduce((a,b) => a + (b-avg)**2, 0) / returns.length);
+    const sharpe = std > 0 ? (avg / std) * Math.sqrt(365) : 0;
+    document.getElementById('sharpe-display').textContent = Math.max(sharpe, 0).toFixed(2);
+  }
+}
+
+function updateMetricsFinal(data) {
+  document.getElementById('portfolio-value').textContent = fmt$(data.finalAi);
+  const retEl = document.getElementById('portfolio-return');
+  retEl.textContent = (data.aiReturnPct >= 0 ? '+' : '') + data.aiReturnPct.toFixed(1) + '%';
+  retEl.style.color = data.aiReturnPct >= 0 ? '#67df70' : '#ffb4ab';
+  document.getElementById('hold-value').textContent = fmt$(data.finalBtc);
+  const hEl = document.getElementById('hold-return');
+  hEl.textContent = (data.btcReturnPct >= 0 ? '+' : '') + data.btcReturnPct.toFixed(1) + '%';
+  hEl.style.color = data.btcReturnPct >= 0 ? '#67df70' : '#ffb4ab';
+  document.getElementById('max-drawdown').textContent = data.maxDrawdown.toFixed(1) + '%';
+  document.getElementById('sharpe-display').textContent = data.sharpe.toFixed(2);
+}
+
+function updateSignalForNextDay(idx, data) {
+  const nextDate = new Date(data.dates[idx]);
+  nextDate.setDate(nextDate.getDate() + 1);
+  const el = document.getElementById('signal-date-display');
+  if (el) el.textContent = 'Prediction for: ' + nextDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+
+  const trend = idx > 5 ? (data.aiValues[idx] - data.aiValues[idx-5]) / data.aiValues[idx-5] : 0;
+  let signal, risk, confidence, prob;
+  if (trend > 0.01) { signal = 'ACCUMULATE'; risk = 'LOW'; confidence = 55 + Math.random() * 30; prob = 0.5 + (confidence - 55) / 300; }
+  else if (trend < -0.01) { signal = 'DISTRIBUTE'; risk = 'HIGH'; confidence = 50 + Math.random() * 25; prob = 0.5 - (confidence - 50) / 250; }
+  else { signal = 'HOLD'; risk = 'MEDIUM'; confidence = 45 + Math.random() * 20; prob = 0.5; }
+  confidence = Math.round(confidence * 10) / 10;
+
+  const sigEl = document.getElementById('ai-signal');
+  if (sigEl) sigEl.textContent = signal;
+  const confEl = document.getElementById('ai-confidence');
+  if (confEl) confEl.textContent = confidence + '%';
+  const rlEl = document.getElementById('risk-level');
+  if (rlEl) { rlEl.textContent = risk; rlEl.style.color = risk === 'LOW' ? '#67df70' : risk === 'MEDIUM' ? '#a2c9ff' : '#ffb4ab'; }
+}
+
+function updateLogAt(idx, data) {
+  const feed = document.getElementById('neural-feed');
+  const relevant = data.decisions.filter(d => d.day <= idx).slice(-8).reverse();
+  if (relevant.length === 0) {
+    feed.innerHTML = '<div class="text-center py-12 text-on-surface-variant"><span class="material-symbols-outlined text-4xl mb-2 opacity-30">analytics</span><p class="text-sm">No decisions yet in this period</p></div>';
+    document.getElementById('log-count').textContent = '0 entries';
+    return;
+  }
+  feed.innerHTML = '';
+  const severityColors = { error: 'error', secondary: 'secondary', 'primary-container': 'primary-container' };
+  relevant.forEach(d => {
+    const color = severityColors[d.severity] || 'primary-container';
+    const dateStr = data.dates[d.day].toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    feed.innerHTML += '<div class="group border-l-2 border-' + color + ' pl-3 md:pl-4 py-2"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-' + color + ' uppercase">' + d.label + '</span><span class="text-xs text-on-surface-variant">' + dateStr + '</span></div><p class="text-sm md:text-base font-body leading-relaxed">' + d.msg + '</p></div>';
+  });
+  document.getElementById('log-count').textContent = relevant.length + ' entries';
+}
+
+function updateLogFinal(data) { updateLogAt(data.days - 1, data); }
+
+document.getElementById('btn-run').addEventListener('click', () => {
+  const capital = parseFloat(document.getElementById('input-capital').value) || 10000;
+  const startStr = document.getElementById('input-start').value;
+  const endStr = document.getElementById('input-end').value;
+  if (!startStr || !endStr) { alert('Please select both start and end dates.'); return; }
+  const startDate = new Date(startStr + 'T00:00:00');
+  const endDate = new Date(endStr + 'T00:00:00');
+  if (endDate <= startDate) { alert('End date must be after start date.'); return; }
+  zoomedIdx = null;
+  simData = generateSimulation(capital, startDate, endDate);
+  renderChart(simData, null);
+  const dayCount = simData.days;
+  document.getElementById('chart-subtitle').textContent = dayCount + ' days simulated — ' + capital.toLocaleString() + ' initial capital — ' + startDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + ' to ' + endDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+});
+
+document.getElementById('execute-btn').addEventListener('click', function() {
+  const btn = this;
+  if (btn.disabled) return;
+  btn.textContent = 'Executing...'; btn.disabled = true; btn.style.opacity = '0.6';
+  const signalText = document.getElementById('ai-signal').textContent;
+  const confidenceText = document.getElementById('ai-confidence').textContent;
+  const riskText = document.getElementById('risk-level').textContent;
+  const feed = document.getElementById('neural-feed');
+  const now = new Date().toISOString().slice(11, 19) + ' UTC';
+  const colors = { ACCUMULATE: 'secondary', HOLD: 'primary-container', DISTRIBUTE: 'error' };
+  const labels = { ACCUMULATE: 'Strategy Executed', HOLD: 'Position Maintained', DISTRIBUTE: 'Risk Reduction' };
+  const color = colors[signalText] || 'primary-container';
+  const label = labels[signalText] || 'Strategy Executed';
+  const entry = document.createElement('div');
+  entry.className = 'group border-l-2 border-' + color + ' pl-4 py-1';
+  entry.style.opacity = '0';
+  entry.innerHTML = '<div class="flex justify-between items-center mb-1"><span class="text-[10px] font-bold text-' + color + ' uppercase">' + label + '</span><span class="text-[10px] text-on-surface-variant">' + now + '</span></div><p class="text-sm font-body leading-snug">AI signal: <span class="text-' + color + '">' + signalText + '</span> (Confidence: ' + confidenceText + '). Risk level: ' + riskText + '. Strategy deployed across portfolio allocations.</p>';
+  feed.insertBefore(entry, feed.firstChild);
+  requestAnimationFrame(() => { entry.style.transition = 'opacity 0.4s ease'; entry.style.opacity = '1'; });
+  setTimeout(() => { btn.textContent = '✓ Executed'; btn.style.opacity = '1'; setTimeout(() => { btn.textContent = 'Execute Engine Strategy'; btn.disabled = false; }, 1500); }, 300);
+});
+
+document.getElementById('btn-run').click();
+</script>
+<!-- Bottom Tab Bar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 h-16 bg-[#1c2026] border-t border-[#414752]/15 flex justify-around items-center">
+<a href="index.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Terminal</span>
+</a>
+<a href="simulator.html" class="flex flex-col items-center justify-center text-[#58a6ff] border-t-2 border-[#58a6ff] -mt-[2px] h-full px-6">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Simulator</span>
+</a>
+<a href="engine-room.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<span class="material-symbols-outlined">memory</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Engine</span>
+</a>
+</nav>
+</body>
+</html>

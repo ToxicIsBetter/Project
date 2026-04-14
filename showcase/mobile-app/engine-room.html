@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<title>NeuralEdge - Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" crossorigin href="https://fonts.gstatic.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface-dim": "#10141a",
+        "surface-container": "#1c2026",
+        "surface-container-low": "#181c22",
+        "surface-container-lowest": "#0a0e14",
+        "surface-container-high": "#262a31",
+        "surface-container-highest": "#31353c",
+        "surface-bright": "#353940",
+        "surface-variant": "#31353c",
+        "on-surface": "#dfe2eb",
+        "on-surface-variant": "#c0c7d4",
+        "outline-variant": "#414752",
+        "outline": "#8b919d",
+        "primary": "#a2c9ff",
+        "primary-container": "#58a6ff",
+        "on-primary": "#00315c",
+        "on-primary-container": "#003a6b",
+        "on-primary-fixed": "#001c38",
+        "on-primary-fixed-variant": "#004882",
+        "primary-fixed": "#d3e4ff",
+        "primary-fixed-dim": "#a2c9ff",
+        "secondary": "#67df70",
+        "secondary-container": "#27a640",
+        "secondary-fixed-dim": "#67df70",
+        "on-secondary": "#00390d",
+        "on-secondary-container": "#00320a",
+        "tertiary": "#ffb4ac",
+        "tertiary-container": "#ff7b70",
+        "on-tertiary": "#690007",
+        "on-tertiary-container": "#790009",
+        "error": "#ffb4ab",
+        "error-container": "#93000a",
+        "inverse-surface": "#dfe2eb",
+        "inverse-primary": "#0060aa",
+        "background": "#10141a",
+        "on-background": "#dfe2eb",
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk"],
+        "body": ["Inter"],
+        "label": ["Inter"]
+      },
+      borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+      animation: {
+        "pulse-slow": "pulse 3s ease-in-out infinite",
+      },
+    },
+  },
+};
+</script>
+<style>
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+html, body {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  overscroll-behavior: none;
+}
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+.app-container {
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #10141a;
+  position: relative;
+  overflow: hidden;
+}
+@media (min-width: 431px) {
+  .app-container {
+    height: 90dvh;
+    margin-top: 5dvh;
+    border-radius: 2rem;
+    border: 6px solid #31353c;
+    box-shadow: 0 0 60px rgba(88, 166, 255, 0.08), 0 20px 40px rgba(0,0,0,0.5);
+  }
+}
+.scroll-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scroll-behavior: smooth;
+}
+.scroll-content::-webkit-scrollbar { display: none; }
+.page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+  will-change: transform, opacity;
+}
+.page.hidden-page {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+.page.active-page {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.card-press:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+.glow-pulse {
+  animation: glowPulse 2s ease-in-out infinite;
+}
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 8px rgba(103, 223, 112, 0.3); }
+  50% { box-shadow: 0 0 20px rgba(103, 223, 112, 0.6); }
+}
+.status-bar {
+  height: env(safe-area-inset-top, 20px);
+  min-height: 20px;
+  background: #10141a;
+  flex-shrink: 0;
+}
+.tab-bar {
+  padding-bottom: env(safe-area-inset-bottom, 8px);
+}
+.bottom-safe {
+  height: env(safe-area-inset-bottom, 8px);
+}
+</style>
+</head>
+<body class="bg-[#0a0e14]">
+<div class="app-container">
+  <!-- Status Bar -->
+  <div class="status-bar"></div>
+
+  <!-- Top Header -->
+  <header class="flex items-center justify-between px-5 h-14 bg-[#10141a] border-b border-[#414752]/15 flex-shrink-0">
+    <div class="flex items-center gap-2">
+      <span class="material-symbols-outlined text-[#58a6ff] text-[22px]">terminal</span>
+      <span class="text-lg font-bold tracking-widest text-[#dfe2eb] font-headline">NEURALEDGE</span>
+    </div>
+    <span class="material-symbols-outlined text-[#c0c7d4] text-[22px]">notifications</span>
+  </header>
+
+  <!-- Page Container -->
+  <div class="relative flex-1 overflow-hidden">
+    <!-- Engine Room Page (Active) -->
+    <div id="page-engine" class="page active-page">
+      <div class="scroll-content px-4 pt-4 pb-4">
+        <!-- Engine Status -->
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <div class="w-2 h-2 rounded-full bg-[#67df70] animate-pulse"></div>
+              <span class="text-[9px] uppercase tracking-widest text-[#a2c9ff] font-medium">Neural Engine</span>
+            </div>
+            <h2 class="text-xl font-headline font-bold text-[#dfe2eb]">Engine Room</h2>
+          </div>
+          <div class="bg-[#1c2026] rounded-lg px-3 py-2 border border-[#414752]/15">
+            <p class="text-[8px] uppercase tracking-widest text-[#8b919d] text-center">Confidence</p>
+            <p class="text-lg font-headline font-bold text-[#a2c9ff] text-center">94.2%</p>
+          </div>
+        </div>
+
+        <!-- Head 1: On-Chain -->
+        <div class="bg-[#1c2026] rounded-xl border border-[#414752]/15 p-5 mb-3 card-press">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-[#c0c7d4]">Head 1: On-Chain</h3>
+            <span class="material-symbols-outlined text-[#a2c9ff]/40 text-[28px]">database</span>
+          </div>
+          <div class="flex items-center justify-center mb-4">
+            <div class="relative w-32 h-32">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle class="text-[#31353c]" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-width="6"/>
+                <circle class="text-[#58a6ff]" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-dasharray="283" stroke-dashoffset="70" stroke-linecap="round" stroke-width="6"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-headline font-bold text-[#dfe2eb]">High</span>
+                <span class="text-[8px] text-[#8b919d] uppercase tracking-widest">Whale Flow</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-[#181c22] p-2.5 rounded-lg border-l-2 border-[#a2c9ff]">
+              <p class="text-[8px] text-[#8b919d] uppercase">Active Wallets</p>
+              <p class="text-sm font-headline font-bold text-[#dfe2eb]">142.8k <span class="text-[#67df70] text-[10px]">↑</span></p>
+            </div>
+            <div class="bg-[#181c22] p-2.5 rounded-lg border-l-2 border-[#414752]">
+              <p class="text-[8px] text-[#8b919d] uppercase">MVRV Ratio</p>
+              <p class="text-sm font-headline font-bold text-[#dfe2eb]">1.84 <span class="text-[#ff7b70] text-[10px]">↓</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Head 2: Sentiment -->
+        <div class="bg-[#1c2026] rounded-xl border border-[#414752]/15 p-5 mb-3 card-press">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-[#c0c7d4]">Head 2: Sentiment</h3>
+            <span class="material-symbols-outlined text-[#67df70]/40 text-[28px]">psychology</span>
+          </div>
+          <div class="flex items-center justify-center mb-4">
+            <div class="relative w-32 h-32">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle class="text-[#31353c]" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-width="6"/>
+                <circle class="text-[#67df70]" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-dasharray="283" stroke-dashoffset="120" stroke-linecap="round" stroke-width="6"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span class="text-2xl font-headline font-bold text-[#dfe2eb]">62</span>
+                <span class="text-[8px] text-[#8b919d] uppercase tracking-widest">Greed Index</span>
+              </div>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-[#181c22] p-2.5 rounded-lg border-l-2 border-[#67df70]">
+              <p class="text-[8px] text-[#8b919d] uppercase">Google Trends</p>
+              <p class="text-sm font-headline font-bold text-[#dfe2eb]">92/100</p>
+            </div>
+            <div class="bg-[#181c22] p-2.5 rounded-lg border-l-2 border-[#414752]">
+              <p class="text-[8px] text-[#8b919d] uppercase">Social Volume</p>
+              <p class="text-sm font-headline font-bold text-[#dfe2eb]">2.4M <span class="text-[#67df70] text-[10px]">↑</span></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fusion Layer -->
+        <div class="bg-[#262a31] rounded-xl border border-[#a2c9ff]/20 p-5 mb-3 relative overflow-hidden">
+          <div class="absolute inset-0 bg-[#a2c9ff]/5 blur-[20px]"></div>
+          <div class="relative">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-xs font-bold uppercase tracking-widest text-[#a2c9ff]">Fusion Layer</h3>
+              <div class="w-1.5 h-1.5 rounded-full bg-[#67df70] animate-ping"></div>
+            </div>
+            <div class="bg-[#0a0e14] rounded-lg p-3 font-mono text-[10px] text-[#a2c9ff]/80 border border-[#a2c9ff]/10 mb-3">
+              <p class="text-[#8b919d] mb-1">[FUSION_PROC]: Synchronizing...</p>
+              <p class="text-[#c0c7d4] mb-1">&gt; On-Chain (0.62) | Sentiment (0.38)</p>
+              <p class="text-[#67df70]">&gt; Consensus: 0.9422</p>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-[8px] text-[#8b919d] uppercase">Reconciliation</span>
+                  <span class="text-[8px] text-[#a2c9ff]">88%</span>
+                </div>
+                <div class="h-1 w-full bg-[#31353c] rounded-full overflow-hidden">
+                  <div class="h-full bg-[#a2c9ff] rounded-full" style="width: 88%"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Execution Queue -->
+        <div class="bg-[#1c2026] rounded-xl border border-[#414752]/15 p-5 mb-3">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-[#c0c7d4] mb-3">Pending Execution</h3>
+          <div class="space-y-2">
+            <div class="flex items-center justify-between bg-[#181c22] rounded-lg p-3 border border-[#414752]/10 card-press">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-[#a2c9ff]/10 flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[#a2c9ff] text-[16px]">shopping_cart</span>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-[#dfe2eb]">ETH/USDC</p>
+                  <p class="text-[9px] text-[#8b919d]">LIMIT BUY @ $2,420</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-[10px] font-headline text-[#a2c9ff]">0.4% VOL</p>
+                <p class="text-[8px] text-[#67df70] uppercase font-bold">Ready</p>
+              </div>
+            </div>
+            <div class="flex items-center justify-between bg-[#181c22] rounded-lg p-3 border border-[#414752]/10 opacity-50">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-[#31353c] flex items-center justify-center">
+                  <span class="material-symbols-outlined text-[#8b919d] text-[16px]">sync</span>
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-[#dfe2eb]">SOL/USDC</p>
+                  <p class="text-[9px] text-[#8b919d]">REBALANCING</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-[8px] text-[#8b919d] uppercase font-bold">Queued</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Insight -->
+        <div class="bg-[#1c2026] rounded-xl border border-[#414752]/15 p-5 mb-3">
+          <h3 class="text-[9px] uppercase tracking-widest text-[#8b919d] mb-2">AI Insight</h3>
+          <p class="text-sm text-[#dfe2eb]/80 leading-relaxed italic">"Multiple whale clusters detected moving from cold storage to DEX liquidity pools. Correlation with sentiment shift suggests a tactical accumulation phase."</p>
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-[#414752]/10">
+            <span class="text-[9px] text-[#a2c9ff] uppercase font-bold tracking-widest">Neural Bias: BULLISH</span>
+            <span class="material-symbols-outlined text-[#67df70] text-[16px]">trending_up</span>
+          </div>
+        </div>
+
+        <div class="bottom-safe"></div>
+      </div>
+    </div>
+
+    <!-- Terminal Page (Hidden) -->
+    <div id="page-terminal" class="page hidden-page">
+      <div class="scroll-content px-4 pt-4 pb-4">
+        <!-- AI Signal Card -->
+        <div class="bg-[#1c2026] border border-[#a2c9ff]/20 rounded-xl p-5 mb-4 card-press relative overflow-hidden">
+          <div class="absolute -top-8 -right-8 w-24 h-24 bg-[#a2c9ff]/10 blur-[30px] rounded-full"></div>
+          <div class="flex items-center justify-between mb-4 relative">
+            <div class="px-2 py-1 bg-[#a2c9ff]/10 border border-[#a2c9ff]/30 text-[9px] font-bold text-[#a2c9ff] tracking-widest uppercase">Neural Signal</div>
+            <div class="flex items-center gap-1.5">
+              <div class="w-1.5 h-1.5 rounded-full bg-[#67df70] glow-pulse"></div>
+              <span class="text-[9px] font-mono text-[#8b919d]">LIVE</span>
+            </div>
+          </div>
+          <div class="flex items-end justify-between relative">
+            <div>
+              <p class="text-[9px] uppercase tracking-widest text-[#c0c7d4] mb-1">Current Logic</p>
+              <h2 class="text-2xl font-headline font-bold text-[#67df70] uppercase tracking-tight">ACCUMULATE</h2>
+            </div>
+            <div class="text-right">
+              <p class="text-[9px] uppercase tracking-widest text-[#c0c7d4] mb-1">Confidence</p>
+              <p class="text-xl font-headline font-bold text-[#a2c9ff]">94.2%</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3 mt-3 pt-3 border-t border-[#414752]/15">
+            <div class="flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-[#67df70] shadow-[0_0_6px_#67df70]"></div>
+              <span class="text-[10px] font-bold text-[#dfe2eb]">Risk: LOW</span>
+            </div>
+            <span class="text-[10px] text-[#8b919d]">|</span>
+            <span class="text-[10px] text-[#8b919d] font-mono">v4.2.1</span>
+          </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 gap-3 mb-4">
+          <div class="bg-[#1c2026] rounded-xl p-4 border-l-2 border-[#58a6ff] card-press">
+            <p class="text-[8px] uppercase tracking-[0.15em] text-[#c0c7d4] font-semibold mb-1">Portfolio Value</p>
+            <p class="text-lg font-headline font-bold text-[#dfe2eb]">$1.42M</p>
+            <p class="text-[#67df70] text-[10px] font-medium font-headline mt-0.5">+12.4%</p>
+          </div>
+          <div class="bg-[#1c2026] rounded-xl p-4 border-l-2 border-[#414752] card-press">
+            <p class="text-[8px] uppercase tracking-[0.15em] text-[#c0c7d4] font-semibold mb-1">30D Return</p>
+            <p class="text-lg font-headline font-bold text-[#dfe2eb]">+8.42%</p>
+            <p class="text-[#67df70] text-[10px] font-medium font-headline mt-0.5">OUTPERFORM</p>
+          </div>
+          <div class="bg-[#1c2026] rounded-xl p-4 border-l-2 border-[#ff7b70] card-press">
+            <p class="text-[8px] uppercase tracking-[0.15em] text-[#c0c7d4] font-semibold mb-1">Max Drawdown</p>
+            <p class="text-lg font-headline font-bold text-[#dfe2eb]">-8.20%</p>
+            <p class="text-[#ffb4ac] text-[10px] font-medium font-headline mt-0.5">LOW RISK</p>
+          </div>
+          <div class="bg-[#1c2026] rounded-xl p-4 border-l-2 border-[#414752] card-press">
+            <p class="text-[8px] uppercase tracking-[0.15em] text-[#c0c7d4] font-semibold mb-1">Sharpe Ratio</p>
+            <p class="text-lg font-headline font-bold text-[#dfe2eb]">3.24</p>
+            <p class="text-[#a2c9ff] text-[10px] font-medium font-headline mt-0.5">OPTIMAL</p>
+          </div>
+        </div>
+
+        <!-- BTC Price Card -->
+        <div class="bg-[#1c2026] rounded-xl p-4 mb-4 border border-[#414752]/10 card-press">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-[#f7931a]/20 flex items-center justify-center">
+                <span class="text-[#f7931a] font-bold text-xs">₿</span>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-[#dfe2eb]">Bitcoin</p>
+                <p class="text-[10px] text-[#8b919d]">BTC/USD</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-bold text-[#dfe2eb] font-headline">$67,842</p>
+              <p class="text-[#67df70] text-[10px] font-medium">+2.4% 24h</p>
+            </div>
+          </div>
+          <svg class="w-full h-16" viewBox="0 0 300 60" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#58a6ff" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#58a6ff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,45 L30,40 L60,42 L90,35 L120,38 L150,28 L180,32 L210,22 L240,25 L270,18 L300,15 L300,60 L0,60 Z" fill="url(#chartGrad)"/>
+            <path d="M0,45 L30,40 L60,42 L90,35 L120,38 L150,28 L180,32 L210,22 L240,25 L270,18 L300,15" fill="none" stroke="#58a6ff" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <!-- AI Alert Feed -->
+        <div class="mb-4">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="material-symbols-outlined text-[#a2c9ff] text-[18px]">psychology</span>
+            <h3 class="text-sm font-bold uppercase tracking-widest text-[#dfe2eb]">AI Alert Feed</h3>
+          </div>
+          <div class="space-y-2">
+            <div class="bg-[#1c2026] rounded-lg p-3.5 border-l-[3px] border-[#67df70] card-press">
+              <div class="flex items-start gap-3">
+                <span class="text-base mt-0.5">🐋</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-[#dfe2eb] leading-snug">Whale Alert: 500 BTC moved to Binance</p>
+                  <p class="text-[10px] text-[#8b919d] mt-1">2 min ago</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-[#1c2026] rounded-lg p-3.5 border-l-[3px] border-[#a2c9ff] card-press">
+              <div class="flex items-start gap-3">
+                <span class="text-base mt-0.5">📊</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-[#dfe2eb] leading-snug">Sentiment Shift: Fear → Neutral detected</p>
+                  <p class="text-[10px] text-[#8b919d] mt-1">18 min ago</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-[#1c2026] rounded-lg p-3.5 border-l-[3px] border-[#ff7b70] card-press">
+              <div class="flex items-start gap-3">
+                <span class="text-base mt-0.5">⚠️</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-[#dfe2eb] leading-snug">Volatility spike expected in next 4h window</p>
+                  <p class="text-[10px] text-[#8b919d] mt-1">42 min ago</p>
+                </div>
+              </div>
+            </div>
+            <div class="bg-[#1c2026] rounded-lg p-3.5 border-l-[3px] border-[#67df70] card-press">
+              <div class="flex items-start gap-3">
+                <span class="text-base mt-0.5">✅</span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm text-[#dfe2eb] leading-snug">AI maintained portfolio — protected from 3% dip</p>
+                  <p class="text-[10px] text-[#8b919d] mt-1">1h ago</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bottom-safe"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <nav class="tab-bar bg-[#1c2026] border-t border-[#414752]/15 flex justify-around items-center h-[72px] flex-shrink-0">
+    <button id="tab-terminal" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6 active:scale-95 duration-100" onclick="switchTab('terminal')">
+      <span class="material-symbols-outlined">dashboard</span>
+      <span class="text-[10px] font-medium uppercase tracking-widest mt-1">Terminal</span>
+    </button>
+    <button id="tab-engine" class="flex flex-col items-center justify-center text-[#58a6ff] border-t-2 border-[#58a6ff] -mt-[2px] h-full px-6 active:scale-95 duration-100" onclick="switchTab('engine')">
+      <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">memory</span>
+      <span class="text-[10px] font-medium uppercase tracking-widest mt-1">Engine</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+function switchTab(tab) {
+  const terminalPage = document.getElementById('page-terminal');
+  const enginePage = document.getElementById('page-engine');
+  const terminalTab = document.getElementById('tab-terminal');
+  const engineTab = document.getElementById('tab-engine');
+
+  if (tab === 'terminal') {
+    terminalPage.className = 'page active-page';
+    enginePage.className = 'page hidden-page';
+    terminalTab.className = 'flex flex-col items-center justify-center text-[#58a6ff] border-t-2 border-[#58a6ff] -mt-[2px] h-full px-6 active:scale-95 duration-100';
+    engineTab.className = 'flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6 active:scale-95 duration-100';
+  } else {
+    enginePage.className = 'page active-page';
+    terminalPage.className = 'page hidden-page';
+    engineTab.className = 'flex flex-col items-center justify-center text-[#58a6ff] border-t-2 border-[#58a6ff] -mt-[2px] h-full px-6 active:scale-95 duration-100';
+    terminalTab.className = 'flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6 active:scale-95 duration-100';
+  }
+}
+
+let touchStartX = 0;
+let touchEndX = 0;
+const container = document.querySelector('.app-container');
+
+container.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+
+container.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  const diff = touchStartX - touchEndX;
+  if (Math.abs(diff) > 80) {
+    if (diff > 0 && document.getElementById('page-terminal').classList.contains('active-page')) {
+      switchTab('engine');
+    } else if (diff < 0 && document.getElementById('page-engine').classList.contains('active-page')) {
+      switchTab('terminal');
+    }
+  }
+}, { passive: true });
+</script>
+</body>
+</html>

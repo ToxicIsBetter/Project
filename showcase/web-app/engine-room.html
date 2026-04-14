@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeuralEdge Terminal | Engine Room</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "on-primary-fixed": "#001c38",
+        "inverse-on-surface": "#2d3137",
+        "background": "#10141a",
+        "surface-variant": "#31353c",
+        "on-primary": "#00315c",
+        "secondary": "#67df70",
+        "on-secondary-container": "#00320a",
+        "on-primary-container": "#003a6b",
+        "on-error-container": "#ffdad6",
+        "primary-fixed-dim": "#a2c9ff",
+        "primary-fixed": "#d3e4ff",
+        "inverse-surface": "#dfe2eb",
+        "surface": "#10141a",
+        "on-surface": "#dfe2eb",
+        "surface-container": "#1c2026",
+        "error": "#ffb4ab",
+        "surface-bright": "#353940",
+        "secondary-fixed-dim": "#67df70",
+        "on-surface-variant": "#c0c7d4",
+        "primary-container": "#58a6ff",
+        "tertiary-fixed-dim": "#ffb4ac",
+        "surface-dim": "#10141a",
+        "on-primary-fixed-variant": "#004882",
+        "on-secondary-fixed-variant": "#005317",
+        "on-tertiary-container": "#790009",
+        "on-secondary": "#00390d",
+        "surface-container-lowest": "#0a0e14",
+        "on-secondary-fixed": "#002105",
+        "primary": "#a2c9ff",
+        "on-error": "#690005",
+        "outline-variant": "#414752",
+        "secondary-fixed": "#83fc89",
+        "secondary-container": "#27a640",
+        "inverse-primary": "#0060aa",
+        "on-tertiary-fixed-variant": "#93000d",
+        "surface-container-low": "#181c22",
+        "error-container": "#93000a",
+        "on-background": "#dfe2eb",
+        "on-tertiary": "#690007",
+        "surface-container-highest": "#31353c",
+        "tertiary": "#ffb4ac",
+        "on-tertiary-fixed": "#410002",
+        "tertiary-container": "#ff7b70",
+        "tertiary-fixed": "#ffdad6",
+        "outline": "#8b919d",
+        "surface-tint": "#a2c9ff",
+        "surface-container-high": "#262a31"
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk"],
+        "body": ["Inter"],
+        "label": ["Inter"]
+      },
+      borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+    },
+  },
+};
+</script>
+<style>
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.neural-glow { text-shadow: 0 0 10px rgba(162, 201, 255, 0.4); }
+.bento-grid { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+@media(min-width:768px) { .bento-grid { grid-template-columns: repeat(12, 1fr); } }
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #414752; border-radius: 10px; }
+@keyframes pulse-ring { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
+.pulse-ring { animation: pulse-ring 2s ease-in-out infinite; }
+</style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary/30">
+<nav class="bg-[#10141a] text-[#a2c9ff] font-['Space_Grotesk'] tracking-tight flex justify-between items-center w-full px-6 py-3 h-16 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-[#a2c9ff]">NeuralEdge Terminal</span>
+<nav class="hidden md:flex items-center gap-6 text-sm uppercase font-medium">
+<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="index.html">Terminal</a>
+<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="simulator.html">Simulator</a>
+<a class="text-[#a2c9ff] border-b-2 border-[#58a6ff] pb-1 cursor-pointer active:opacity-80" href="#">Engine Room</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#67df70] live-dot"></div>
+<span class="text-[10px] text-[#67df70] font-mono uppercase">Live</span>
+</div>
+<button class="material-symbols-outlined p-2 rounded hover:bg-[#31353c]/60 transition-colors cursor-pointer">notifications</button>
+</div>
+</nav>
+
+<main class="pt-20 pb-24 px-4 md:px-6 max-w-[1600px] mx-auto">
+<header class="flex flex-col gap-4 mb-6">
+<div>
+<h1 class="font-headline text-2xl md:text-4xl font-bold tracking-tighter neural-glow">Engine Room</h1>
+<p class="text-on-surface-variant text-xs md:text-sm mt-1">Model3_OnChain Neural Core | Live Inference</p>
+</div>
+<div class="grid grid-cols-3 gap-3 bg-surface-container p-3 md:p-4 rounded-xl border border-outline-variant/10">
+<div class="flex flex-col min-w-0">
+<span class="text-[9px] md:text-[0.6875rem] uppercase tracking-wider text-on-surface-variant font-medium truncate">Confidence</span>
+<span id="engine-confidence" class="text-lg md:text-2xl font-headline font-bold text-primary tracking-tight">--</span>
+</div>
+<div class="flex flex-col min-w-0 border-l border-outline-variant/20 pl-3">
+<span class="text-[9px] md:text-[0.6875rem] uppercase tracking-wider text-on-surface-variant font-medium truncate">Fusion</span>
+<div class="flex items-center gap-1">
+<div id="fusion-dot" class="w-2 h-2 rounded-full bg-[#414752] flex-shrink-0"></div>
+<span id="fusion-status" class="text-on-surface-variant font-semibold text-xs md:text-base truncate">--</span>
+</div>
+</div>
+<div class="flex flex-col min-w-0 border-l border-outline-variant/20 pl-3">
+<span class="text-[9px] md:text-[0.6875rem] uppercase tracking-wider text-on-surface-variant font-medium truncate">Latency</span>
+<span id="engine-latency" class="text-lg md:text-2xl font-headline font-bold text-secondary tracking-tight">--</span>
+</div>
+</div>
+</header>
+
+<div class="bento-grid">
+<!-- Dual-Head AI Visualization -->
+<div class="md:col-span-12 lg:col-span-8 bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10 flex flex-col">
+<div class="px-4 md:px-6 py-3 md:py-4 border-b border-outline-variant/5 flex justify-between items-center">
+<h2 class="font-headline font-semibold flex items-center gap-2 text-sm md:text-base">
+<span class="material-symbols-outlined text-primary text-lg md:text-base">psychology</span>
+Dual-Head Engine
+</h2>
+<span id="engine-timestamp" class="text-[9px] md:text-[10px] text-on-surface-variant font-mono">--</span>
+</div>
+<div class="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 relative">
+<!-- Head 1: On-Chain Metrics -->
+<div class="flex flex-col items-center">
+<div class="relative w-48 h-48 md:w-64 md:h-64 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle cx="128" cy="128" fill="transparent" r="110" stroke="#1c2026" stroke-width="12"></circle>
+<circle id="gauge-onchain" cx="128" cy="128" fill="transparent" r="110" stroke="#a2c9ff" stroke-dasharray="691" stroke-dashoffset="691" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span id="onchain-score" class="text-3xl font-headline font-bold">--</span>
+<span class="text-[0.6875rem] text-on-surface-variant uppercase">On-Chain Score</span>
+</div>
+</div>
+<div class="mt-8 w-full space-y-3">
+<h3 class="text-sm font-semibold border-l-2 border-primary pl-3">On-Chain Metrics</h3>
+<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
+<span class="text-on-surface-variant">Whale Flows</span>
+<span id="whale-flows" class="text-secondary font-mono">--</span>
+</div>
+<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
+<span class="text-on-surface-variant">Active Wallets</span>
+<span id="active-wallets" class="font-mono">--</span>
+</div>
+<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
+<span class="text-on-surface-variant">MVRV Z-Score</span>
+<span id="mvrv-score" class="text-primary font-mono">--</span>
+</div>
+</div>
+</div>
+<!-- Head 2: Sentiment Analysis -->
+<div class="flex flex-col items-center">
+<div class="relative w-64 h-64 flex items-center justify-center">
+<svg class="w-full h-full -rotate-90">
+<circle cx="128" cy="128" fill="transparent" r="110" stroke="#1c2026" stroke-width="12"></circle>
+<circle id="gauge-sentiment" cx="128" cy="128" fill="transparent" r="110" stroke="#67df70" stroke-dasharray="691" stroke-dashoffset="691" stroke-linecap="round" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span id="sentiment-score" class="text-3xl font-headline font-bold">--</span>
+<span class="text-[0.6875rem] text-on-surface-variant uppercase">Sentiment Score</span>
+</div>
+</div>
+<div class="mt-8 w-full space-y-3">
+<h3 class="text-sm font-semibold border-l-2 border-secondary pl-3">Sentiment Analysis</h3>
+<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
+<span class="text-on-surface-variant">Google Trends</span>
+<span id="google-trends" class="text-primary font-mono">--</span>
+</div>
+<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
+<span class="text-on-surface-variant">Fear & Greed</span>
+<span id="fear-greed" class="text-secondary font-mono">--</span>
+</div>
+<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
+<span class="text-on-surface-variant">Social Velocity</span>
+<span id="social-velocity" class="font-mono">--</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Fusion Layer & Neural Logs -->
+<div class="md:col-span-12 lg:col-span-4 space-y-6">
+<!-- Fusion Status Card -->
+<div class="bg-surface-container rounded-xl p-6 border border-outline-variant/10">
+<h3 class="font-headline font-semibold mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-secondary">hub</span>
+Fusion Layer Status
+</h3>
+<div class="space-y-4">
+<div class="p-4 bg-surface-container-low rounded-lg border-l-4 border-primary">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold text-primary">LAYER 1: SIGNAL AGGREGATION</span>
+<span id="layer1-status" class="material-symbols-outlined text-[16px] text-on-surface-variant">pending</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div id="layer1-bar" class="bg-primary h-full rounded-full" style="width: 0%"></div>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-l-4 border-primary">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold text-primary">LAYER 2: RISK WEIGHTING</span>
+<span id="layer2-status" class="material-symbols-outlined text-[16px] text-on-surface-variant">pending</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div id="layer2-bar" class="bg-primary h-full rounded-full" style="width: 0%"></div>
+</div>
+</div>
+<div class="p-4 bg-surface-container-low rounded-lg border-l-4 border-secondary">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold text-secondary">LAYER 3: FINAL INFERENCE</span>
+<div id="layer3-dots" class="flex gap-1">
+<div class="w-1 h-1 bg-secondary"></div>
+<div class="w-1 h-1 bg-secondary"></div>
+<div class="w-1 h-1 bg-secondary"></div>
+</div>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div id="layer3-bar" class="bg-secondary h-full rounded-full" style="width: 0%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Execution Feed / Logs -->
+<div class="bg-surface-container rounded-xl flex-grow border border-outline-variant/10 overflow-hidden">
+<div class="px-6 py-4 bg-surface-container-high flex justify-between items-center">
+<span class="font-headline font-semibold text-sm">Neural Engine Logs</span>
+<span class="material-symbols-outlined text-sm">terminal</span>
+</div>
+<div id="engine-logs" class="p-4 font-mono text-[11px] space-y-2 h-[320px] overflow-y-auto custom-scrollbar">
+<div class="text-on-surface-variant"><span class="text-primary">[--:--:--]</span> Waiting for live data...</div>
+</div>
+</div>
+</div>
+
+<!-- Execution Strategy Panel -->
+<div class="md:col-span-12 bg-surface-container-low rounded-xl p-4 md:p-8 border border-outline-variant/5">
+<div class="flex flex-col md:flex-row items-center justify-between gap-8">
+<div class="flex items-center gap-6">
+<div class="p-4 bg-primary/10 rounded-full">
+<span class="material-symbols-outlined text-primary text-4xl">precision_manufacturing</span>
+</div>
+<div>
+<h3 class="font-headline text-xl font-bold">Neural Execution Strategy</h3>
+<p class="text-on-surface-variant text-sm">Model3_OnChain inference across on-chain and sentiment data</p>
+</div>
+</div>
+<div class="flex gap-4">
+<button id="btn-view-logs" class="px-8 py-3 bg-surface-container-highest border border-outline-variant/20 rounded-lg font-headline font-bold text-sm hover:bg-surface-container-high transition-colors cursor-pointer">
+VIEW FULL LOGS
+</button>
+<button id="btn-deploy" class="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold rounded-lg text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity cursor-pointer">
+DEPLOY ENGINE
+</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+
+<script>
+const API = 'http://localhost:8002';
+async function api(path) {
+  try {
+    const r = await fetch(API + path);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch (e) {
+    console.warn('API fetch failed for', path, e);
+    return null;
+  }
+}
+
+function fmtTime() { return new Date().toISOString().slice(11, 19); }
+
+function addLog(msg, color) {
+  const logs = document.getElementById('engine-logs');
+  const placeholder = logs.querySelector('.text-on-surface-variant');
+  if (placeholder) placeholder.remove();
+  const entry = document.createElement('div');
+  entry.className = color ? 'text-' + color : 'text-on-surface-variant';
+  entry.innerHTML = '<span class="text-primary">[' + fmtTime() + ']</span> ' + msg;
+  logs.insertBefore(entry, logs.firstChild);
+  if (logs.children.length > 50) logs.removeChild(logs.lastChild);
+}
+
+function setGauge(id, score) {
+  const circumference = 691;
+  const offset = circumference - (score / 100) * circumference;
+  document.getElementById(id).setAttribute('stroke-dashoffset', offset);
+}
+
+async function refreshEngine() {
+  const [engine, signal, fg, btc] = await Promise.all([
+    api('/api/engine'), api('/api/signal'), api('/api/fear-greed'), api('/api/btc')
+  ]);
+
+  if (signal) {
+    document.getElementById('engine-confidence').textContent = signal.confidence + '%';
+    document.getElementById('engine-timestamp').textContent = 'Last inference: ' + new Date(signal.timestamp).toLocaleTimeString();
+  }
+
+  if (engine) {
+    document.getElementById('fusion-status').textContent = engine.fusion_layer.status;
+    const dot = document.getElementById('fusion-dot');
+    dot.style.backgroundColor = engine.fusion_layer.status === 'SYNCHRONIZED' ? '#67df70' : '#a2c9ff';
+    dot.classList.add('animate-pulse');
+    document.getElementById('engine-latency').textContent = engine.latency_ms + 'ms';
+
+    // On-Chain metrics
+    document.getElementById('whale-flows').textContent = engine.head1_onchain.whale_flow;
+    document.getElementById('active-wallets').textContent = engine.head1_onchain.active_wallets;
+    document.getElementById('mvrv-score').textContent = engine.head1_onchain.mvrv_ratio;
+    const onchainScore = engine.head1_onchain.mvrv_ratio > 1.5 ? 72 : engine.head1_onchain.mvrv_ratio > 1 ? 55 : 35;
+    document.getElementById('onchain-score').textContent = onchainScore.toFixed(1);
+    setGauge('gauge-onchain', onchainScore);
+
+    // Sentiment metrics
+    document.getElementById('google-trends').textContent = engine.head1_onchain.google_trends + '/100';
+    document.getElementById('fear-greed').textContent = engine.head2_sentiment.greed_index + ' (' + engine.head2_sentiment.classification + ')';
+    document.getElementById('social-velocity').textContent = engine.head2_sentiment.social_volume;
+    const sentimentScore = engine.head2_sentiment.greed_index;
+    document.getElementById('sentiment-score').textContent = sentimentScore.toFixed(1);
+    setGauge('gauge-sentiment', sentimentScore);
+
+    // Fusion layers
+    const reconciliation = engine.fusion_layer.reconciliation;
+    document.getElementById('layer1-bar').style.width = '100%';
+    document.getElementById('layer1-status').textContent = 'check_circle';
+    document.getElementById('layer1-status').classList.add('text-secondary');
+    document.getElementById('layer2-bar').style.width = Math.min(100, reconciliation + 10) + '%';
+    document.getElementById('layer2-status').textContent = 'check_circle';
+    document.getElementById('layer2-status').classList.add('text-secondary');
+    document.getElementById('layer3-bar').style.width = reconciliation + '%';
+    const dots = document.getElementById('layer3-dots');
+    dots.innerHTML = '<div class="w-1 h-1 bg-secondary animate-bounce"></div><div class="w-1 h-1 bg-secondary animate-bounce [animation-delay:0.2s]"></div><div class="w-1 h-1 bg-secondary animate-bounce [animation-delay:0.4s]"></div>';
+
+    // Live logs
+    addLog('Head 1: On-Chain score ' + onchainScore.toFixed(1) + '. Whale flow: ' + engine.head1_onchain.whale_flow, 'on-surface-variant');
+    addLog('Head 2: Sentiment score ' + sentimentScore.toFixed(1) + '. F&G: ' + engine.head2_sentiment.greed_index, 'on-surface-variant');
+    addLog('Fusion Layer: Reconciliation at ' + reconciliation + '%. Consensus: ' + engine.fusion_layer.consensus, 'secondary');
+    if (signal) addLog('Inference: ' + signal.signal + ' (Confidence: ' + signal.confidence + '%, Risk: ' + signal.risk_level + ')', signal.signal === 'ACCUMULATE' ? 'secondary' : signal.signal === 'DISTRIBUTE' ? 'error' : 'primary');
+  }
+
+  if (fg) {
+    document.getElementById('fear-greed').textContent = fg.value + ' (' + fg.classification + ')';
+  }
+}
+
+// Deploy Engine button
+document.getElementById('btn-deploy').addEventListener('click', function() {
+  const btn = this;
+  if (btn.disabled) return;
+  btn.textContent = 'Deploying...';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+  addLog('DEPLOY ENGINE: Initializing Model3_OnChain inference pipeline...', 'secondary');
+  setTimeout(() => {
+    addLog('DEPLOY ENGINE: Loading on-chain feature set (6 features)...', 'on-surface-variant');
+  }, 500);
+  setTimeout(() => {
+    addLog('DEPLOY ENGINE: Loading sentiment feature set (12 features)...', 'on-surface-variant');
+  }, 1000);
+  setTimeout(() => {
+    addLog('DEPLOY ENGINE: Running forward pass through Dual-Head Transformer...', 'primary');
+  }, 1500);
+  setTimeout(() => {
+    addLog('DEPLOY ENGINE: Fusion layer synchronized. Inference complete.', 'secondary');
+    btn.textContent = '✓ Deployed';
+    btn.style.opacity = '1';
+    setTimeout(() => {
+      btn.textContent = 'DEPLOY ENGINE';
+      btn.disabled = false;
+    }, 2000);
+  }, 2500);
+});
+
+// View Full Logs button
+document.getElementById('btn-view-logs').addEventListener('click', function() {
+  addLog('VIEW FULL LOGS: Exporting neural engine log buffer...', 'primary');
+  addLog('VIEW FULL LOGS: ' + document.getElementById('engine-logs').children.length + ' entries in current session.', 'on-surface-variant');
+});
+
+refreshEngine();
+setInterval(refreshEngine, 30000);
+</script>
+<!-- Bottom Tab Bar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 h-16 bg-[#1c2026] border-t border-[#414752]/15 flex justify-around items-center">
+<a href="index.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Terminal</span>
+</a>
+<a href="simulator.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Simulator</span>
+</a>
+<a href="engine-room.html" class="flex flex-col items-center justify-center text-[#58a6ff] border-t-2 border-[#58a6ff] -mt-[2px] h-full px-6">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">memory</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Engine</span>
+</a>
+</nav>
+<div class="fixed top-1/4 -left-64 w-96 h-96 bg-primary/5 blur-[120px] pointer-events-none"></div>
+<div class="fixed bottom-0 -right-64 w-[500px] h-[500px] bg-secondary/5 blur-[150px] pointer-events-none"></div>
+</body></html>

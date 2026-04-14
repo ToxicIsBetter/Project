@@ -17,6 +17,6 @@
   ],
   "feature_selection": "Boruta (primary), LASSO (secondary)",
   "note": "No availability masks \u2014 all sentiment sources real from start date",
-  "accuracy": 0.5204968944099378,
-  "f1": 0.24313725490196078
+  "accuracy": 0.4832298136645963,
+  "f1": 0.4332425068119891
 }
