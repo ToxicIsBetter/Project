@@ -255,24 +255,51 @@ Neural Log & Execution
 </main>
 
 <script>
+const API = 'http://localhost:8002';
+async function api(path) {
+  try {
+    const r = await fetch(API + path);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch (e) {
+    console.warn('API fetch failed for', path, e);
+    return null;
+  }
+}
+
 let simData = null;
 let zoomedIdx = null;
 
 function fmt$(v) { return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
 
+const TEST_DATASET_START = new Date("2023-12-08T00:00:00");
 const today = new Date();
+
 const sixMonthsAgo = new Date();
 sixMonthsAgo.setMonth(today.getMonth() - 6);
-document.getElementById('input-start').value = sixMonthsAgo.toISOString().split('T')[0];
-document.getElementById('input-end').value = today.toISOString().split('T')[0];
+const defaultStart = sixMonthsAgo > TEST_DATASET_START ? sixMonthsAgo : TEST_DATASET_START;
+
+const inputStart = document.getElementById('input-start');
+const inputEnd = document.getElementById('input-end');
+
+inputStart.value = defaultStart.toISOString().split('T')[0];
+inputStart.min = "2023-12-08";
+
+inputEnd.value = today.toISOString().split('T')[0];
+inputEnd.min = "2023-12-08";
 
 let cachedPriceData = null;
 
-async function fetchPriceData() {
+async function fetchSimData() {
   if (cachedPriceData) return cachedPriceData;
-  const data = await api('/api/btc/history/full');
-  if (data && data.prices) {
-    cachedPriceData = data.prices.map(p => ({ date: new Date(p.date), price: p.price }));
+  const data = await api('/api/simulator/history');
+  if (data && data.length > 0) {
+    cachedPriceData = data.map(p => ({ 
+        date: new Date(p.date), 
+        price: p.price, 
+        signal: p.signal, 
+        probability: p.probability 
+    }));
     cachedPriceData.sort((a, b) => a.date - b.date);
   }
   return cachedPriceData;
@@ -285,69 +312,84 @@ async function generateSimulation(capital, startDate, endDate) {
   const decisions = [];
   const dates = [];
   const signals = [];
+  const exposures = [];
   
-  // Get actual price data
-  const priceData = await fetchPriceData();
-  if (!priceData) {
+  // Get actual modeled history data
+  const simDataHistory = await fetchSimData();
+  if (!simDataHistory) {
     return generateFallbackSimulation(capital, startDate, endDate);
   }
   
-  // Build price map for the date range
-  const priceMap = new Map();
-  priceData.forEach(p => priceMap.set(p.date.toDateString(), p.price));
+  // Build map for O(1) lookups
+  const dataMap = new Map();
+  simDataHistory.forEach(p => dataMap.set(p.date.toDateString(), p));
   
-let price = null, prevPrice = null;
+  let price = null, prevPrice = null;
   let aiVal = capital;
   let btcVal = capital;
   let exposure = 0.5; // Start with 50% BTC exposure
+  const initialDataNode = simDataHistory.find(d => d.date >= startDate);
+  let basePrice = initialDataNode ? initialDataNode.price : 70000;
 
   for (let i = 0; i < days; i++) {
     const d = new Date(startDate);
     d.setDate(d.getDate() + i);
     dates.push(d);
-    exposures.push(exposure * 100); // Track exposure as percentage
+    exposures.push(exposure * 100); 
     
     const dateKey = d.toDateString();
-    const dayPrice = priceMap.get(dateKey);
+    const dataNode = dataMap.get(dateKey);
     
-    if (dayPrice !== undefined) {
+    if (dataNode !== undefined) {
       prevPrice = price;
-      price = dayPrice;
+      price = dataNode.price;
     }
     
-    btcVal = capital * (price / priceData[0].price);
+    if (!price) {
+        price = prevPrice || basePrice;
+    }
+    
+    btcVal = capital * (price / basePrice);
     btcValues.push(btcVal);
     
-    // Determine signal based on price movement and trend
     let signal = 'HOLD';
-    let dailyReturn = 0;
     
     if (prevPrice && price) {
-      dailyReturn = (price - prevPrice) / prevPrice;
-      
-      // Model3 signal logic: use probability if available, otherwise derive from price action
-      if (dailyReturn < -0.02) {
-        signal = 'DISTRIBUTE';
-      } else if (dailyReturn > 0.02) {
-        signal = 'ACCUMULATE';
-      } else {
-        signal = 'HOLD';
-      }
-      
-      // Apply trading logic based on signal
-      if (signal === 'DISTRIBUTE') {
-        exposure = Math.max(0.1, exposure - 0.15);
-        decisions.push({ day: i, label: 'Risk Reduction', msg: 'AI reduced BTC exposure to ' + Math.round(exposure * 100) + '% due to bearish signal. Price dropped ' + (dailyReturn * 100).toFixed(1) + '%.', severity: 'error' });
-      } else if (signal === 'ACCUMULATE') {
-        exposure = Math.min(0.9, exposure + 0.1);
-        decisions.push({ day: i, label: 'Accumulation', msg: 'AI increased BTC exposure to ' + Math.round(exposure * 100) + '% due to bullish signal. Price rose ' + (dailyReturn * 100).toFixed(1) + '%.', severity: 'secondary' });
+      if (dataNode) {
+          signal = dataNode.signal;
+          const conf = dataNode.probability;
+          
+          if (signal === 'DISTRIBUTE' || signal === 'ACCUMULATE') {
+            const nextDate = new Date(d);
+            nextDate.setDate(nextDate.getDate() + 1);
+            const nextData = dataMap.get(nextDate.toDateString());
+            const nextPrice = nextData ? nextData.price : price;
+            const nextChange = nextPrice && price ? ((nextPrice - price) / price * 100) : 0;
+            
+            if (signal === 'DISTRIBUTE') {
+                exposure = Math.max(0.0, exposure - 0.25);
+            } else if (signal === 'ACCUMULATE') {
+                exposure = Math.min(1.0, exposure + 0.25);
+            }
+            
+            decisions.push({ 
+               day: i, 
+               action: signal === 'DISTRIBUTE' ? 'Risk Reduction' : 'Accumulation',
+               signal: signal,
+               conf: Math.round((signal === 'ACCUMULATE' ? conf : (1-conf)) * 100),
+               price: price,
+               nextPrice: nextPrice,
+               nextChange: nextChange,
+               exposure: Math.round(exposure * 100),
+               severity: signal === 'DISTRIBUTE' ? 'error' : 'secondary' 
+            });
+          }
       }
     }
     
     signals.push(signal);
     
-    // AI portfolio value follows BTC with exposure adjustment
-    const aiReturn = (price / (prevPrice || price)) * exposure + (1 - exposure) * 1;
+    const aiReturn = prevPrice && price ? (price / prevPrice) * exposure + (1 - exposure) * 1 : 1;
     aiVal *= aiReturn;
     aiValues.push(aiVal);
   }
@@ -355,11 +397,16 @@ let price = null, prevPrice = null;
   // Calculate metrics
   const aiReturns = [];
   for (let i = 1; i < aiValues.length; i++) aiReturns.push((aiValues[i] - aiValues[i-1]) / aiValues[i-1]);
-  const avgReturn = aiReturns.reduce((a,b) => a+b, 0) / aiReturns.length;
-  const stdReturn = Math.sqrt(aiReturns.reduce((a,b) => a + (b-avgReturn)**2, 0) / aiReturns.length);
+  const avgReturn = aiReturns.reduce((a,b) => a+b, 0) / (aiReturns.length || 1);
+  const stdReturn = Math.sqrt(aiReturns.reduce((a,b) => a + (b-avgReturn)**2, 0) / (aiReturns.length || 1));
   const sharpe = stdReturn > 0 ? (avgReturn / stdReturn) * Math.sqrt(365) : 0;
+  
   let peak = aiValues[0], maxDD = 0;
-  for (const v of aiValues) { if (v > peak) peak = v; const dd = (v - peak) / peak; if (dd < maxDD) maxDD = dd; }
+  for (const v of aiValues) { 
+      if (v > peak) peak = v; 
+      const dd = (v - peak) / peak; 
+      if (dd < maxDD) maxDD = dd; 
+  }
   const finalAi = aiValues[aiValues.length - 1];
   const finalBtc = btcValues[btcValues.length - 1];
 
@@ -513,20 +560,21 @@ function renderChart(data, zoomIdx) {
 
   container.onmousemove = (e) => {
     const rect = container.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / rect.width;
-    const idx = Math.max(startIdx, Math.min(endIdx, Math.round(startIdx + mx * (visibleDays - 1))));
+    const mouseX = e.clientX - rect.left;
+    const chartFraction = Math.max(0, Math.min(1, (mouseX - PAD_L) / (W - PAD_L - PAD_R)));
+    const idx = Math.round(startIdx + chartFraction * (visibleDays - 1));
     const svgX = toX(idx), svgYAi = toY(data.aiValues[idx]), svgYBtc = toY(data.btcValues[idx]);
     crosshair.setAttribute('x1', svgX); crosshair.setAttribute('x2', svgX); crosshair.classList.add('visible');
     dotAi.setAttribute('cx', svgX); dotAi.setAttribute('cy', svgYAi); dotAi.classList.add('visible');
     dotBtc.setAttribute('cx', svgX); dotBtc.setAttribute('cy', svgYBtc); dotBtc.classList.add('visible');
     tooltip.setAttribute('transform', 'translate(' + svgX + ',' + svgYAi + ')');
     tooltip.classList.add('visible');
-document.getElementById('tt-date').textContent = data.dates[idx].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-  document.getElementById('tt-ai').textContent = 'AI: ' + fmt$(data.aiValues[idx]);
-  document.getElementById('tt-btc').textContent = 'BTC: ' + fmt$(data.btcValues[idx]);
-  const exp = data.exposures ? data.exposures[idx] : 50;
-  document.getElementById('tt-exp').textContent = 'Exposure: ' + exp.toFixed(0) + '%';
-  updateMetricsAt(idx, data);
+    document.getElementById('tt-date').textContent = data.dates[idx].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    document.getElementById('tt-ai').textContent = 'AI: ' + fmt$(data.aiValues[idx]);
+    document.getElementById('tt-btc').textContent = 'BTC: ' + fmt$(data.btcValues[idx]);
+    const exp = data.exposures ? data.exposures[idx] : 50;
+    document.getElementById('tt-exp').textContent = 'Exposure: ' + exp.toFixed(0) + '%';
+    updateMetricsAt(idx, data);
     updateLogAt(idx, data);
     updateSignalForNextDay(idx, data);
   };
@@ -539,8 +587,9 @@ document.getElementById('tt-date').textContent = data.dates[idx].toLocaleDateStr
   container.onclick = (e) => {
     if (isZoomed) return;
     const rect = container.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / rect.width;
-    const idx = Math.max(0, Math.min(data.days - 1, Math.round(mx * (data.days - 1))));
+    const mouseX = e.clientX - rect.left;
+    const chartFraction = Math.max(0, Math.min(1, (mouseX - PAD_L) / (W - PAD_L - PAD_R)));
+    const idx = Math.round(startIdx + chartFraction * (visibleDays - 1));
     zoomedIdx = idx;
     renderChart(data, idx);
     updateMetricsAt(idx, data);
@@ -615,19 +664,61 @@ function updateSignalForNextDay(idx, data) {
 
 function updateLogAt(idx, data) {
   const feed = document.getElementById('neural-feed');
-  const relevant = data.decisions.filter(d => d.day <= idx).slice(-8).reverse();
+  const relevant = data.decisions.filter(d => d.day <= idx).reverse();
   if (relevant.length === 0) {
     feed.innerHTML = '<div class="text-center py-12 text-on-surface-variant"><span class="material-symbols-outlined text-4xl mb-2 opacity-30">analytics</span><p class="text-sm">No decisions yet in this period</p></div>';
     document.getElementById('log-count').textContent = '0 entries';
     return;
   }
-  feed.innerHTML = '';
-  const severityColors = { error: 'error', secondary: 'secondary', 'primary-container': 'primary-container' };
+  
+  let tableHtml = `
+    <div class="overflow-x-auto h-full max-h-[400px] overflow-y-auto w-full pr-2">
+      <table class="w-full text-left text-xs md:text-sm">
+        <thead class="sticky top-0 z-20 text-on-surface-variant border-b border-outline/30" style="background-color: #10141a; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);">
+          <tr>
+            <th class="py-2 px-2 font-normal">Date</th>
+            <th class="py-2 px-2 font-normal">Signal</th>
+            <th class="py-2 px-2 font-normal">Model Confidence</th>
+            <th class="py-2 px-2 font-normal">Execution Price</th>
+            <th class="py-2 px-2 text-right font-normal">Portfolio Value</th>
+            <th class="py-2 px-2 text-right font-normal text-primary">Total Return</th>
+            <th class="py-2 px-2 font-normal text-right opacity-70">Next Day Price</th>
+            <th class="py-2 px-2 font-normal text-right opacity-70">Next Day Return</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline/10">
+  `;
+  
   relevant.forEach(d => {
-    const color = severityColors[d.severity] || 'primary-container';
-    const dateStr = data.dates[d.day].toLocaleDateString('en-US', {month:'short', day:'numeric'});
-    feed.innerHTML += '<div class="group border-l-2 border-' + color + ' pl-3 md:pl-4 py-2"><div class="flex justify-between items-center mb-1"><span class="text-xs font-bold text-' + color + ' uppercase">' + d.label + '</span><span class="text-xs text-on-surface-variant">' + dateStr + '</span></div><p class="text-sm md:text-base font-body leading-relaxed">' + d.msg + '</p></div>';
+    const color = d.severity === 'error' ? '#ffb4ab' : '#67df70';
+    const dateStr = data.dates[d.day].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'2-digit'});
+    
+    // T+1 Change Variables
+    const changeColor = d.nextChange >= 0 ? '#67df70' : '#ffb4ab';
+    const changeSign = d.nextChange >= 0 ? '+' : '';
+    
+    // Portfolio Growth Variables
+    const portfolioVal = data.aiValues[d.day];
+    const portfolioRet = ((portfolioVal - data.capital) / data.capital) * 100;
+    const pColor = portfolioRet >= 0 ? '#67df70' : '#ffb4ab';
+    const pSign = portfolioRet >= 0 ? '+' : '';
+    
+    tableHtml += `
+      <tr class="hover:bg-on-surface/5 transition-colors">
+        <td class="py-3 px-2 text-on-surface-variant whitespace-nowrap">${dateStr}</td>
+        <td class="py-3 px-2 font-bold" style="color: ${color}">${d.signal}</td>
+        <td class="py-3 px-2 text-on-surface">${d.conf}%</td>
+        <td class="py-3 px-2 font-mono text-on-surface-variant">${fmt$(d.price)}</td>
+        <td class="py-3 px-2 font-mono text-right font-medium text-on-surface">${fmt$(portfolioVal)}</td>
+        <td class="py-3 px-2 font-mono font-bold text-right" style="color: ${pColor}">${pSign}${portfolioRet.toFixed(2)}%</td>
+        <td class="py-3 px-2 font-mono text-right text-on-surface-variant opacity-70">${fmt$(d.nextPrice)}</td>
+        <td class="py-3 px-2 font-mono font-medium text-right opacity-70" style="color: ${changeColor}">${changeSign}${d.nextChange.toFixed(2)}%</td>
+      </tr>
+    `;
   });
+  
+  tableHtml += `</tbody></table></div>`;
+  feed.innerHTML = tableHtml;
   document.getElementById('log-count').textContent = relevant.length + ' entries';
 }
 
