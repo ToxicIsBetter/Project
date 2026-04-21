@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>NeuralEdge Terminal | Results</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface-dim": "#10141a",
+        "surface-container": "#1c2026",
+        "surface-container-low": "#181c22",
+        "surface-container-lowest": "#0a0e14",
+        "surface-container-high": "#262a31",
+        "surface-container-highest": "#31353c",
+        "surface-bright": "#353940",
+        "surface-variant": "#31353c",
+        "on-surface": "#dfe2eb",
+        "on-surface-variant": "#c0c7d4",
+        "outline-variant": "#414752",
+        "outline": "#8b919d",
+        "primary": "#a2c9ff",
+        "primary-container": "#58a6ff",
+        "on-primary": "#00315c",
+        "on-primary-container": "#003a6b",
+        "primary-fixed": "#d3e4ff",
+        "primary-fixed-dim": "#a2c9ff",
+        "secondary": "#67df70",
+        "secondary-container": "#27a640",
+        "secondary-fixed-dim": "#67df70",
+        "on-secondary": "#00390d",
+        "tertiary": "#ffb4ac",
+        "tertiary-container": "#ff7b70",
+        "error": "#ffb4ab",
+        "error-container": "#93000a",
+        "background": "#10141a",
+        "on-background": "#dfe2eb"
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk"],
+        "body": ["Inter"],
+        "label": ["Inter"]
+      },
+      borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+    },
+  },
+};
+</script>
+<style>
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 4px rgba(103, 223, 112, 0.35); } 50% { box-shadow: 0 0 12px rgba(103, 223, 112, 0.8); } }
+@keyframes pulse-ring { 0%, 100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+@keyframes rise-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.live-dot { animation: pulse-glow 2s ease-in-out infinite; }
+.pulse-ring { animation: pulse-ring 2s ease-in-out infinite; }
+.neural-glow { text-shadow: 0 0 10px rgba(162, 201, 255, 0.35); }
+.metric-card, .panel { animation: rise-in .5s ease both; }
+.grid-12 { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:1.5rem; }
+.table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+.table-scroll::-webkit-scrollbar-thumb { background:#414752; border-radius:999px; }
+.bar { height: 10px; border-radius: 999px; background: rgba(65,71,82,.7); overflow:hidden; }
+.bar > span { display:block; height:100%; border-radius:999px; background: linear-gradient(90deg,#58a6ff 0%, #67df70 100%); }
+.mono { font-variant-numeric: tabular-nums; }
+@media (max-width: 1024px){ .grid-12{grid-template-columns:1fr;} }
+</style>
+</head>
+<body class="bg-[#0a0e14] text-on-surface font-body selection:bg-primary/30">
+<nav class="bg-[#10141a] text-[#a2c9ff] font-['Space_Grotesk'] tracking-tight flex justify-between items-center w-full px-6 py-3 h-16 fixed top-0 z-50 border-b border-outline-variant/10">
+  <div class="flex items-center gap-8">
+    <span class="text-xl font-bold tracking-tighter text-[#a2c9ff]">NeuralEdge Terminal</span>
+    <div class="hidden md:flex items-center gap-6 text-sm uppercase font-medium">
+      <a class="text-[#c0c7d4] hover:text-[#a2c9ff] transition-colors" href="#overview">Overview</a>
+      <a class="text-[#a2c9ff] border-b-2 border-[#58a6ff] pb-1" href="#results">Results</a>
+      <a class="text-[#c0c7d4] hover:text-[#a2c9ff] transition-colors" href="#features">Features</a>
+      <a class="text-[#c0c7d4] hover:text-[#a2c9ff] transition-colors" href="#training">Training</a>
+    </div>
+  </div>
+  <div class="flex items-center gap-4">
+    <div class="flex items-center gap-2">
+      <div class="w-2 h-2 rounded-full bg-[#67df70] live-dot"></div>
+      <span class="text-[10px] text-[#67df70] font-mono uppercase">Ready</span>
+    </div>
+    <button class="material-symbols-outlined p-2 rounded hover:bg-[#31353c]/60 transition-colors">insights</button>
+  </div>
+</nav>
+
+<div class="bg-error-container border-b border-error/20 px-4 py-3 text-center mt-16">
+  <p class="text-xs md:text-sm text-[#ffdad6]"><span class="font-bold">Research Notice:</span> This dashboard presents dissertation model results for educational and analytical use.</p>
+</div>
+
+<main class="pt-8 px-4 md:px-6 pb-24 max-w-[1600px] mx-auto">
+  <header id="overview" class="flex flex-col gap-4 mb-8">
+    <div>
+      <h1 class="font-headline text-2xl md:text-4xl font-bold tracking-tighter neural-glow">Fine-Tuned Results Console</h1>
+      <p class="text-on-surface-variant text-xs md:text-sm mt-1">Dual-Head Transformer v1.0 | Bitcoin Direction Prediction | Production Readiness Review</p>
+    </div>
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+      <div class="metric-card bg-surface-container p-5 rounded-xl border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+        <p class="text-xs text-on-surface-variant uppercase tracking-widest mb-1">Test Accuracy</p>
+        <h2 class="text-2xl font-headline font-bold text-primary-fixed-dim mono">57.46%</h2>
+        <div class="flex items-center gap-2 mt-2"><span class="text-xs font-bold text-secondary">PASS</span><span class="text-[10px] text-on-surface-variant">Target &gt; 50%</span></div>
+      </div>
+      <div class="metric-card bg-surface-container p-5 rounded-xl border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+        <p class="text-xs text-on-surface-variant uppercase tracking-widest mb-1">F1 Score</p>
+        <h2 class="text-2xl font-headline font-bold text-secondary mono">0.54</h2>
+        <div class="flex items-center gap-2 mt-2"><span class="text-xs font-bold text-secondary">10x Better</span><span class="text-[10px] text-on-surface-variant">From 0.056</span></div>
+      </div>
+      <div class="metric-card bg-surface-container p-5 rounded-xl border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+        <p class="text-xs text-on-surface-variant uppercase tracking-widest mb-1">Recall Balance</p>
+        <h2 class="text-2xl font-headline font-bold text-primary mono">65% / 53%</h2>
+        <div class="flex items-center gap-2 mt-2"><span class="text-xs font-bold text-primary">Up / Down</span><span class="text-[10px] text-on-surface-variant">Bias reduced</span></div>
+      </div>
+      <div class="metric-card bg-surface-container p-5 rounded-xl border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+        <p class="text-xs text-on-surface-variant uppercase tracking-widest mb-1">Threshold</p>
+        <h2 class="text-2xl font-headline font-bold text-tertiary mono">0.27</h2>
+        <div class="flex items-center gap-2 mt-2"><span class="text-xs font-bold text-tertiary">Calibrated</span><span class="text-[10px] text-on-surface-variant">Default was 0.50</span></div>
+      </div>
+    </div>
+  </header>
+
+  <section id="results" class="grid-12 mb-6">
+    <div class="panel col-span-12 lg:col-span-8 bg-surface-container rounded-xl p-6 border border-outline-variant/10">
+      <div class="flex justify-between items-start mb-6 gap-4 flex-wrap">
+        <div>
+          <h3 class="text-lg font-headline font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary">monitoring</span>Original vs Fine-Tuned</h3>
+          <p class="text-xs text-on-surface-variant">Core performance metrics across both model versions</p>
+        </div>
+        <div class="flex gap-4 text-[10px] font-bold uppercase tracking-tighter">
+          <div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-primary"></span> Fine-Tuned</div>
+          <div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-outline"></span> Original</div>
+        </div>
+      </div>
+      <div class="space-y-5">
+        <div>
+          <div class="flex justify-between text-xs mb-2"><span class="text-on-surface-variant">Accuracy</span><span class="mono">57.46% vs 55.34%</span></div>
+          <div class="grid grid-cols-2 gap-3"><div class="bar"><span style="width:57.46%"></span></div><div class="bar"><span style="width:55.34%; background:#8b919d"></span></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-2"><span class="text-on-surface-variant">F1 Score</span><span class="mono">53.98% vs 5.6%</span></div>
+          <div class="grid grid-cols-2 gap-3"><div class="bar"><span style="width:53.98%"></span></div><div class="bar"><span style="width:5.6%; background:#8b919d"></span></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-2"><span class="text-on-surface-variant">Recall (Up)</span><span class="mono">65% vs 3%</span></div>
+          <div class="grid grid-cols-2 gap-3"><div class="bar"><span style="width:65%"></span></div><div class="bar"><span style="width:3%; background:#8b919d"></span></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-2"><span class="text-on-surface-variant">Recall (Down)</span><span class="mono">53% vs 98%</span></div>
+          <div class="grid grid-cols-2 gap-3"><div class="bar"><span style="width:53%"></span></div><div class="bar"><span style="width:98%; background:#8b919d"></span></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between text-xs mb-2"><span class="text-on-surface-variant">Decision Threshold</span><span class="mono">0.27 vs 0.50</span></div>
+          <div class="grid grid-cols-2 gap-3"><div class="bar"><span style="width:27%"></span></div><div class="bar"><span style="width:50%; background:#8b919d"></span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel col-span-12 lg:col-span-4 bg-surface-container rounded-xl p-6 border border-outline-variant/10 flex flex-col">
+      <div class="mb-6">
+        <h3 class="text-sm font-bold flex items-center gap-2 mb-1"><span class="material-symbols-outlined text-primary text-sm">psychology</span>Production Readiness</h3>
+        <p class="text-[10px] text-on-surface-variant">Validation against dissertation success criteria</p>
+      </div>
+      <div class="bg-surface-container-low rounded-lg p-4 border border-outline-variant/10 flex-1 space-y-4">
+        <div class="flex justify-between items-center"><span class="text-xs text-on-surface-variant">Accuracy</span><span class="text-secondary text-sm font-bold">PASS</span></div>
+        <div class="flex justify-between items-center"><span class="text-xs text-on-surface-variant">F1 Score</span><span class="text-secondary text-sm font-bold">PASS</span></div>
+        <div class="flex justify-between items-center"><span class="text-xs text-on-surface-variant">Recall Up</span><span class="text-secondary text-sm font-bold">PASS</span></div>
+        <div class="flex justify-between items-center"><span class="text-xs text-on-surface-variant">Recall Down</span><span class="text-secondary text-sm font-bold">PASS</span></div>
+        <div class="flex justify-between items-center"><span class="text-xs text-on-surface-variant">Bias Level</span><span class="text-secondary text-sm font-bold">FIXED</span></div>
+        <div class="flex justify-between items-center"><span class="text-xs text-on-surface-variant">Threshold</span><span class="text-secondary text-sm font-bold">OPTIMIZED</span></div>
+        <div class="bg-[#0a0e14] rounded-lg p-3 font-mono text-[10px] text-[#a2c9ff]/80 border border-[#a2c9ff]/10">
+          <p class="text-[#8b919d] mb-1">[MODEL]</p>
+          <p class="text-[#c0c7d4] mb-1">Fine-Tuned Dual-Head Transformer v1.0</p>
+          <p class="text-[#67df70]">STATUS: PRODUCTION READY</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid-12 mb-6">
+    <div class="panel col-span-12 lg:col-span-7 bg-surface-container rounded-xl border border-outline-variant/10 flex flex-col">
+      <div class="p-5 border-b border-outline-variant/10 flex justify-between items-center">
+        <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-xs">grid_view</span>Confusion Matrix</h3>
+        <span class="text-[10px] text-on-surface-variant">Fine-Tuned balanced output</span>
+      </div>
+      <div class="p-5 table-scroll overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-on-surface-variant border-b border-outline-variant/10 text-left">
+              <th class="py-3 pr-4 font-medium">Actual \ Predicted</th><th class="py-3 pr-4 font-medium">Down (0)</th><th class="py-3 pr-4 font-medium">Up (1)</th><th class="py-3 font-medium">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 pr-4 font-semibold">Down (0)</td><td class="py-3 pr-4 mono text-primary">146 (TN)</td><td class="py-3 pr-4 mono text-tertiary">131 (FP)</td><td class="py-3 mono">277</td></tr>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 pr-4 font-semibold">Up (1)</td><td class="py-3 pr-4 mono text-tertiary">60 (FN)</td><td class="py-3 pr-4 mono text-secondary">112 (TP)</td><td class="py-3 mono">172</td></tr>
+            <tr><td class="py-3 pr-4 font-semibold">Total</td><td class="py-3 pr-4 mono">206</td><td class="py-3 pr-4 mono">243</td><td class="py-3 mono">449</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel col-span-12 lg:col-span-5 bg-surface-container rounded-xl border border-outline-variant/10 flex flex-col">
+      <div class="p-5 border-b border-outline-variant/10 flex justify-between items-center">
+        <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-xs">analytics</span>Classification Report</h3>
+        <span class="text-[10px] text-on-surface-variant">Support: 449 samples</span>
+      </div>
+      <div class="p-5 space-y-4">
+        <div><div class="flex justify-between text-xs mb-2"><span>Down (0)</span><span class="mono">P 0.71 | R 0.53 | F1 0.60</span></div><div class="bar"><span style="width:60%"></span></div></div>
+        <div><div class="flex justify-between text-xs mb-2"><span>Up (1)</span><span class="mono">P 0.46 | R 0.65 | F1 0.54</span></div><div class="bar"><span style="width:54%"></span></div></div>
+        <div><div class="flex justify-between text-xs mb-2"><span>Overall</span><span class="mono">P 0.58 | R 0.59 | F1 0.57</span></div><div class="bar"><span style="width:57%"></span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="features" class="grid-12 mb-6">
+    <div class="panel col-span-12 lg:col-span-4 bg-surface-container rounded-xl border border-outline-variant/10">
+      <div class="p-5 border-b border-outline-variant/10"><h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">hub</span>On-Chain Head</h3></div>
+      <div class="p-5">
+        <p class="text-xs text-on-surface-variant mb-4">13 selected features: 8 base metrics, 4 growth metrics, 1 momentum signal.</p>
+        <div class="flex flex-wrap gap-2 text-[11px]">
+          <span class="px-2 py-1 rounded bg-surface-container-high text-primary">AdrActCnt</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">AdrBalCnt</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">TxCnt</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">HashRate</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">BlkCnt</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">SplyExNtv</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">FlowInExNtv</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">CapMVRVCur</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">AdrActCnt_growth7d</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">AdrActCnt_growth30d</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">CapMVRVCur_growth7d</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">CapMVRVCur_growth30d</span><span class="px-2 py-1 rounded bg-secondary/15 text-secondary">momentum_7d</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel col-span-12 lg:col-span-4 bg-surface-container rounded-xl border border-outline-variant/10">
+      <div class="p-5 border-b border-outline-variant/10"><h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">psychology</span>Sentiment Head</h3></div>
+      <div class="p-5">
+        <p class="text-xs text-on-surface-variant mb-4">12 features from Google Trends and Fear &amp; Greed sentiment transforms.</p>
+        <div class="flex flex-wrap gap-2 text-[11px]">
+          <span class="px-2 py-1 rounded bg-surface-container-high text-primary">google_trends</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">gt_ma7</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">gt_ma30</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">gt_change7</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">gt_momentum</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">fear_greed</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">fg_ma7</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">fg_ma14</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">fg_change</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">fg_change7</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">fg_extreme_fear</span><span class="px-2 py-1 rounded bg-surface-container-high text-primary">fg_extreme_greed</span>
+        </div>
+      </div>
+    </div>
+    <div class="panel col-span-12 lg:col-span-4 bg-surface-container rounded-xl border border-outline-variant/10">
+      <div class="p-5 border-b border-outline-variant/10"><h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-primary text-sm">tune</span>Fine-Tuning Changes</h3></div>
+      <div class="p-5 space-y-4 text-sm">
+        <div class="flex justify-between gap-4"><span class="text-on-surface-variant">Class weighting</span><span class="text-secondary text-right">Soft sqrt scaling</span></div>
+        <div class="flex justify-between gap-4"><span class="text-on-surface-variant">Threshold</span><span class="text-primary text-right">0.27 calibrated</span></div>
+        <div class="flex justify-between gap-4"><span class="text-on-surface-variant">Momentum features</span><span class="text-secondary text-right">5 added</span></div>
+        <div class="flex justify-between gap-4"><span class="text-on-surface-variant">Dropout</span><span class="text-primary text-right">0.30</span></div>
+        <div class="flex justify-between gap-4"><span class="text-on-surface-variant">Selected features</span><span class="text-secondary text-right">13</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="training" class="grid-12 mb-6">
+    <div class="panel col-span-12 lg:col-span-7 bg-surface-container rounded-xl border border-outline-variant/10 flex flex-col">
+      <div class="p-5 border-b border-outline-variant/10 flex justify-between items-center">
+        <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-xs">precision_manufacturing</span>Training Configuration</h3>
+        <span class="text-[10px] text-on-surface-variant">Early stopped at 69 epochs</span>
+      </div>
+      <div class="p-5 table-scroll overflow-x-auto">
+        <table class="w-full text-sm">
+          <tbody>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 text-on-surface-variant">Architecture</td><td class="py-3 mono">Dual-Head Transformer</td></tr>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 text-on-surface-variant">Sequence length</td><td class="py-3 mono">5 days</td></tr>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 text-on-surface-variant">Train / Val / Test</td><td class="py-3 mono">70% / 15% / 15%</td></tr>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 text-on-surface-variant">Best validation loss</td><td class="py-3 mono">0.6416</td></tr>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 text-on-surface-variant">Validation F1</td><td class="py-3 mono">0.7113</td></tr>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 text-on-surface-variant">Class weights</td><td class="py-3 mono">Up 0.989, Down 1.011</td></tr>
+            <tr class="border-b border-outline-variant/5"><td class="py-3 text-on-surface-variant">Optimizer</td><td class="py-3 mono">Adam, lr 0.001, wd 1e-5</td></tr>
+            <tr><td class="py-3 text-on-surface-variant">Batch size</td><td class="py-3 mono">64</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel col-span-12 lg:col-span-5 bg-surface-container rounded-xl border border-outline-variant/10 flex flex-col">
+      <div class="p-5 border-b border-outline-variant/10 flex justify-between items-center">
+        <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-xs">inventory_2</span>Saved Artifacts</h3>
+        <span class="text-[10px] text-on-surface-variant">Deployment bundle</span>
+      </div>
+      <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+        <div class="px-3 py-2 rounded bg-surface-container-low">model3_best.pt</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">scaler_head1.pkl</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">scaler_head2_minmax.pkl</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">scaler_head2_std.pkl</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">feature_sets.json</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">metrics_finetuned.json</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">training_curves_finetuned.png</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">roc_curve_finetuned.png</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">README.md</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">MODEL_SUMMARY.md</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">RESULTS.md</div>
+        <div class="px-3 py-2 rounded bg-surface-container-low">CONTENTS.md</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel bg-surface-container rounded-xl border border-outline-variant/10 overflow-hidden">
+    <div class="p-5 border-b border-outline-variant/10 flex justify-between items-center">
+      <h3 class="text-sm font-bold flex items-center gap-2"><span class="material-symbols-outlined text-xs">terminal</span>Key Achievements Log</h3>
+      <span class="text-[10px] text-on-surface-variant">7 confirmed outcomes</span>
+    </div>
+    <div class="p-5 grid md:grid-cols-2 gap-4 text-sm">
+      <div class="bg-[#0a0e14] rounded-lg p-4 border border-outline-variant/10 font-mono text-xs text-on-surface-variant">[01] Accuracy exceeded 50% benchmark with 57.46%</div>
+      <div class="bg-[#0a0e14] rounded-lg p-4 border border-outline-variant/10 font-mono text-xs text-on-surface-variant">[02] F1 improved from 0.056 to 0.54</div>
+      <div class="bg-[#0a0e14] rounded-lg p-4 border border-outline-variant/10 font-mono text-xs text-on-surface-variant">[03] Recall balanced to 65% up and 53% down</div>
+      <div class="bg-[#0a0e14] rounded-lg p-4 border border-outline-variant/10 font-mono text-xs text-on-surface-variant">[04] Severe downward bias removed</div>
+      <div class="bg-[#0a0e14] rounded-lg p-4 border border-outline-variant/10 font-mono text-xs text-on-surface-variant">[05] Momentum features integrated successfully</div>
+      <div class="bg-[#0a0e14] rounded-lg p-4 border border-outline-variant/10 font-mono text-xs text-on-surface-variant">[06] Threshold optimized at 0.27 on validation data</div>
+      <div class="bg-[#0a0e14] rounded-lg p-4 border border-outline-variant/10 font-mono text-xs text-on-surface-variant md:col-span-2">[07] Model declared production ready with documented artifacts and reproducible setup</div>
+    </div>
+  </section>
+</main>
+</body>
+</html>

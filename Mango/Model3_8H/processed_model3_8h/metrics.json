@@ -1,0 +1,27 @@
+{
+  "accuracy": 0.4866693195384003,
+  "f1": 0.5229289940828402,
+  "best_val_loss": 0.6923646926879883,
+  "epochs_trained": 100,
+  "feature_cols": [
+    "open",
+    "high",
+    "low",
+    "price",
+    "volume",
+    "return",
+    "log_return",
+    "range",
+    "vol_7p",
+    "vol_24p",
+    "ma_24",
+    "ma_168",
+    "price_ma_ratio",
+    "tx_count",
+    "hashrate",
+    "fees_btc",
+    "mempool_size",
+    "miners_revenue",
+    "difficulty"
+  ]
+}

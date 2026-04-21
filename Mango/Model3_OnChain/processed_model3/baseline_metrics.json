@@ -1,0 +1,14 @@
+{
+  "accuracy": 0.49074074074074076,
+  "f1": 0.0,
+  "best_val_acc": 0.5208333333333334,
+  "features": [
+    "Close",
+    "Volume",
+    "AdrActCnt",
+    "TxCnt",
+    "HashRate",
+    "BlkCnt",
+    "CapMVRVCur"
+  ]
+}

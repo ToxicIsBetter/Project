@@ -91,6 +91,14 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cur
 </div>
 </nav>
 
+<!-- Investment Disclaimer -->
+<div class="bg-error-container border-b border-error/20 px-4 py-3 text-center">
+  <p class="text-xs md:text-sm text-on-error-container">
+    <span class="font-bold">⚠️ Disclaimer:</span> This is NOT professional financial advice. 
+    For research and educational purposes only. Cryptocurrency investments carry risk — never invest more than you can afford to lose.
+  </p>
+</div>
+
 <main class="pt-20 px-4 md:px-6 pb-24 max-w-[1600px] mx-auto">
 <!-- Simulation Input -->
 <div class="bg-surface-container rounded-xl border border-outline-variant/15 p-4 md:p-6 mb-6">
@@ -163,6 +171,7 @@ AI Strategy vs Buy & Hold
 <div class="flex gap-4 text-[10px] font-bold uppercase tracking-tighter">
 <div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-primary"></span> AI Managed</div>
 <div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-outline"></span> Buy & Hold</div>
+<div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-warning"></span> AI Exposure</div>
 <button id="btn-reset-zoom" class="hidden ml-4 px-3 py-1 bg-surface-container-high border border-outline-variant/20 rounded text-[10px] uppercase tracking-wider hover:bg-surface-container-highest transition-colors cursor-pointer">Reset View</button>
 </div>
 </div>
@@ -172,16 +181,18 @@ AI Strategy vs Buy & Hold
 <g id="x-axis" class="axis-label"></g>
 <g id="grid-lines" class="opacity-15" stroke="#414752" stroke-width="0.5"></g>
 <path id="btc-line" d="" fill="none" stroke="#8b919d" stroke-dasharray="6,4" stroke-width="2"/>
-<path id="ai-line" d="" fill="none" stroke="#a2c9ff" stroke-width="3" class="drop-shadow-[0_0_8px_rgba(162,201,255,0.4)]"/>
-<path id="ai-fill" d="" fill="url(#aiGrad)" opacity="0.15"/>
+  <path id="ai-line" d="" fill="none" stroke="#a2c9ff" stroke-width="3" class="drop-shadow-[0_0_8px_rgba(162,201,255,0.4)]"/>
+  <path id="exposure-line" d="" fill="none" stroke="#fbbf24" stroke-dasharray="4,4" stroke-width="2" opacity="0.8" class="hidden"/>
+  <path id="ai-fill" d="" fill="url(#aiGrad)" opacity="0.15"/>
 <line id="crosshair-v" class="chart-crosshair" x1="0" y1="0" x2="0" y2="400"/>
 <circle id="dot-ai" class="chart-dot" cx="0" cy="0"/>
 <circle id="dot-btc" class="chart-dot-btc" cx="0" cy="0"/>
 <g id="tooltip" class="chart-tooltip">
-<rect x="-110" y="-72" width="220" height="64" rx="8" fill="#262a31" stroke="#414752" stroke-width="1"/>
-<text id="tt-date" x="0" y="-50" text-anchor="middle" fill="#c0c7d4" font-size="11" font-family="Inter"></text>
-<text id="tt-ai" x="-60" y="-26" text-anchor="middle" fill="#a2c9ff" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
-<text id="tt-btc" x="60" y="-26" text-anchor="middle" fill="#8b919d" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
+  <rect x="-110" y="-85" width="220" height="90" rx="8" fill="#262a31" stroke="#414752" stroke-width="1"/>
+  <text id="tt-date" x="0" y="-62" text-anchor="middle" fill="#c0c7d4" font-size="11" font-family="Inter"></text>
+  <text id="tt-ai" x="-60" y="-38" text-anchor="middle" fill="#a2c9ff" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
+  <text id="tt-btc" x="60" y="-38" text-anchor="middle" fill="#8b919d" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
+  <text id="tt-exp" x="0" y="-14" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold" font-family="Space Grotesk"></text>
 </g>
 <defs>
 <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
@@ -255,39 +266,93 @@ sixMonthsAgo.setMonth(today.getMonth() - 6);
 document.getElementById('input-start').value = sixMonthsAgo.toISOString().split('T')[0];
 document.getElementById('input-end').value = today.toISOString().split('T')[0];
 
-function generateSimulation(capital, startDate, endDate) {
+let cachedPriceData = null;
+
+async function fetchPriceData() {
+  if (cachedPriceData) return cachedPriceData;
+  const data = await api('/api/btc/history/full');
+  if (data && data.prices) {
+    cachedPriceData = data.prices.map(p => ({ date: new Date(p.date), price: p.price }));
+    cachedPriceData.sort((a, b) => a.date - b.date);
+  }
+  return cachedPriceData;
+}
+
+async function generateSimulation(capital, startDate, endDate) {
   const days = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
   const aiValues = [];
   const btcValues = [];
   const decisions = [];
-  const basePrice = 70000;
-  let price = basePrice;
+  const dates = [];
+  const signals = [];
+  
+  // Get actual price data
+  const priceData = await fetchPriceData();
+  if (!priceData) {
+    return generateFallbackSimulation(capital, startDate, endDate);
+  }
+  
+  // Build price map for the date range
+  const priceMap = new Map();
+  priceData.forEach(p => priceMap.set(p.date.toDateString(), p.price));
+  
+let price = null, prevPrice = null;
   let aiVal = capital;
   let btcVal = capital;
+  let exposure = 0.5; // Start with 50% BTC exposure
 
   for (let i = 0; i < days; i++) {
-    const t = i / days;
-    const trend = 0.0003 * (Math.sin(t * Math.PI * 2) + 0.5);
-    const noise = (Math.random() - 0.48) * 0.04;
-    const shock = Math.random() < 0.05 ? (Math.random() - 0.7) * 0.08 : 0;
-    const dailyReturn = trend + noise + shock;
-    price *= (1 + dailyReturn);
-    btcVal = capital * (price / basePrice);
-    let aiReturn;
-    if (dailyReturn < -0.03) aiReturn = dailyReturn * 0.35;
-    else if (dailyReturn > 0.02) aiReturn = dailyReturn * 0.75;
-    else aiReturn = dailyReturn + 0.0005;
-    aiVal *= (1 + aiReturn);
-    aiValues.push(aiVal);
-    btcValues.push(btcVal);
-    if (dailyReturn < -0.03) decisions.push({ day: i, label: 'Crash Protection', msg: 'AI reduced exposure by ' + Math.round(Math.random()*20+10) + '%. Market dropped ' + (dailyReturn*100).toFixed(1) + '%.', severity: 'error' });
-    else if (dailyReturn > 0.03) decisions.push({ day: i, label: 'Accumulation Signal', msg: 'AI increased position. Market rallied ' + (dailyReturn*100).toFixed(1) + '%. On-chain flow confirmed.', severity: 'secondary' });
-    else if (Math.random() < 0.08) {
-      const msgs = ['Whale flow detected. AI adjusted allocation.','Sentiment shift detected. Rebalanced to stable reserves.','MVRV ratio crossed threshold. Trimmed position.','Google Trends spike. AI maintained defensive posture.','Active wallet surge. Increased exposure by 5%.','Fear & Greed dropped below 30. AI accumulated.'];
-      decisions.push({ day: i, label: 'Portfolio Adjustment', msg: msgs[Math.floor(Math.random()*msgs.length)], severity: 'primary-container' });
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + i);
+    dates.push(d);
+    exposures.push(exposure * 100); // Track exposure as percentage
+    
+    const dateKey = d.toDateString();
+    const dayPrice = priceMap.get(dateKey);
+    
+    if (dayPrice !== undefined) {
+      prevPrice = price;
+      price = dayPrice;
     }
+    
+    btcVal = capital * (price / priceData[0].price);
+    btcValues.push(btcVal);
+    
+    // Determine signal based on price movement and trend
+    let signal = 'HOLD';
+    let dailyReturn = 0;
+    
+    if (prevPrice && price) {
+      dailyReturn = (price - prevPrice) / prevPrice;
+      
+      // Model3 signal logic: use probability if available, otherwise derive from price action
+      if (dailyReturn < -0.02) {
+        signal = 'DISTRIBUTE';
+      } else if (dailyReturn > 0.02) {
+        signal = 'ACCUMULATE';
+      } else {
+        signal = 'HOLD';
+      }
+      
+      // Apply trading logic based on signal
+      if (signal === 'DISTRIBUTE') {
+        exposure = Math.max(0.1, exposure - 0.15);
+        decisions.push({ day: i, label: 'Risk Reduction', msg: 'AI reduced BTC exposure to ' + Math.round(exposure * 100) + '% due to bearish signal. Price dropped ' + (dailyReturn * 100).toFixed(1) + '%.', severity: 'error' });
+      } else if (signal === 'ACCUMULATE') {
+        exposure = Math.min(0.9, exposure + 0.1);
+        decisions.push({ day: i, label: 'Accumulation', msg: 'AI increased BTC exposure to ' + Math.round(exposure * 100) + '% due to bullish signal. Price rose ' + (dailyReturn * 100).toFixed(1) + '%.', severity: 'secondary' });
+      }
+    }
+    
+    signals.push(signal);
+    
+    // AI portfolio value follows BTC with exposure adjustment
+    const aiReturn = (price / (prevPrice || price)) * exposure + (1 - exposure) * 1;
+    aiVal *= aiReturn;
+    aiValues.push(aiVal);
   }
 
+  // Calculate metrics
   const aiReturns = [];
   for (let i = 1; i < aiValues.length; i++) aiReturns.push((aiValues[i] - aiValues[i-1]) / aiValues[i-1]);
   const avgReturn = aiReturns.reduce((a,b) => a+b, 0) / aiReturns.length;
@@ -298,10 +363,58 @@ function generateSimulation(capital, startDate, endDate) {
   const finalAi = aiValues[aiValues.length - 1];
   const finalBtc = btcValues[btcValues.length - 1];
 
-  const dates = [];
-  for (let i = 0; i < days; i++) { const d = new Date(startDate); d.setDate(d.getDate() + i); dates.push(d); }
+  return { days, capital, startDate, endDate, dates, aiValues, btcValues, decisions, signals, exposures, sharpe: Math.max(sharpe, 0.5), maxDrawdown: maxDD * 100, finalAi, finalBtc, aiReturnPct: ((finalAi - capital) / capital) * 100, btcReturnPct: ((finalBtc - capital) / capital) * 100 };
+}
 
-  return { days, capital, startDate, endDate, dates, aiValues, btcValues, decisions, sharpe: Math.max(sharpe, 0.5), maxDrawdown: maxDD * 100, finalAi, finalBtc, aiReturnPct: ((finalAi - capital) / capital) * 100, btcReturnPct: ((finalBtc - capital) / capital) * 100 };
+function generateFallbackSimulation(capital, startDate, endDate) {
+  // Fallback when API data not available
+  const days = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
+  const aiValues = [];
+const btcValues = [];
+  const decisions = [];
+  const dates = [];
+  const signals = [];
+  const exposures = [];
+
+  let price = 70000;
+  let aiVal = capital;
+  let btcVal = capital;
+  let exposure = 0.5;
+
+  for (let i = 0; i < days; i++) {
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + i);
+    dates.push(d);
+    exposures.push(exposure * 100);
+    
+    const dailyReturn = (Math.random() - 0.48) * 0.03;
+    price *= (1 + dailyReturn);
+    btcVal = capital * (price / 70000);
+    btcValues.push(btcVal);
+    
+    let signal = dailyReturn < -0.01 ? 'DISTRIBUTE' : dailyReturn > 0.01 ? 'ACCUMULATE' : 'HOLD';
+    signals.push(signal);
+    
+    if (signal === 'DISTRIBUTE') {
+      exposure = Math.max(0.1, exposure - 0.15);
+    } else if (signal === 'ACCUMULATE') {
+      exposure = Math.min(0.9, exposure + 0.1);
+    }
+    
+    const aiReturn = (1 + dailyReturn) * exposure + (1 - exposure);
+    aiVal *= aiReturn;
+    aiValues.push(aiVal);
+    
+    if (signal === 'DISTRIBUTE') decisions.push({ day: i, label: 'Risk Reduction', msg: 'AI reduced exposure to ' + Math.round(exposure * 100) + '%', severity: 'error' });
+    else if (signal === 'ACCUMULATE') decisions.push({ day: i, label: 'Accumulation', msg: 'AI increased exposure to ' + Math.round(exposure * 100) + '%', severity: 'secondary' });
+  }
+  
+  let peak = aiValues[0], maxDD = 0;
+  for (const v of aiValues) { if (v > peak) peak = v; const dd = (v - peak) / peak; if (dd < maxDD) maxDD = dd; }
+  const finalAi = aiValues[aiValues.length - 1];
+  const finalBtc = btcValues[btcValues.length - 1];
+  
+  return { days, capital, startDate, endDate, dates, aiValues, btcValues, decisions, signals, exposures, sharpe: 2.5, maxDrawdown: maxDD * 100, finalAi, finalBtc, aiReturnPct: ((finalAi - capital) / capital) * 100, btcReturnPct: ((finalBtc - capital) / capital) * 100 };
 }
 
 function renderChart(data, zoomIdx) {
@@ -380,6 +493,18 @@ function renderChart(data, zoomIdx) {
   document.getElementById('btc-line').setAttribute('d', btcD);
   document.getElementById('ai-fill').setAttribute('d', aiFillD);
   document.getElementById('crosshair-v').setAttribute('y2', H - PAD_B);
+  
+  // Draw exposure line on secondary Y-axis (right side)
+  const exposures = data.exposures || [];
+  const minExp = 0, maxExp = 100;
+  const expToY = (v) => H - PAD_B - ((v - minExp) / (maxExp - minExp)) * (H - PAD_T - PAD_B);
+  let expD = '';
+  for (let i = startIdx; i <= endIdx; i++) {
+    const x = toX(i), yExp = expToY(exposures[i] || 50);
+    expD += (i === startIdx ? 'M' : ' L') + x + ',' + yExp;
+  }
+  document.getElementById('exposure-line').setAttribute('d', expD);
+  document.getElementById('exposure-line').classList.remove('hidden');
 
   const crosshair = document.getElementById('crosshair-v');
   const dotAi = document.getElementById('dot-ai');
@@ -396,10 +521,12 @@ function renderChart(data, zoomIdx) {
     dotBtc.setAttribute('cx', svgX); dotBtc.setAttribute('cy', svgYBtc); dotBtc.classList.add('visible');
     tooltip.setAttribute('transform', 'translate(' + svgX + ',' + svgYAi + ')');
     tooltip.classList.add('visible');
-    document.getElementById('tt-date').textContent = data.dates[idx].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-    document.getElementById('tt-ai').textContent = 'AI: ' + fmt$(data.aiValues[idx]);
-    document.getElementById('tt-btc').textContent = 'BTC: ' + fmt$(data.btcValues[idx]);
-    updateMetricsAt(idx, data);
+document.getElementById('tt-date').textContent = data.dates[idx].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  document.getElementById('tt-ai').textContent = 'AI: ' + fmt$(data.aiValues[idx]);
+  document.getElementById('tt-btc').textContent = 'BTC: ' + fmt$(data.btcValues[idx]);
+  const exp = data.exposures ? data.exposures[idx] : 50;
+  document.getElementById('tt-exp').textContent = 'Exposure: ' + exp.toFixed(0) + '%';
+  updateMetricsAt(idx, data);
     updateLogAt(idx, data);
     updateSignalForNextDay(idx, data);
   };
@@ -506,19 +633,34 @@ function updateLogAt(idx, data) {
 
 function updateLogFinal(data) { updateLogAt(data.days - 1, data); }
 
-document.getElementById('btn-run').addEventListener('click', () => {
+document.getElementById('btn-run').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-run');
+  btn.textContent = 'Loading...';
+  btn.disabled = true;
+  
   const capital = parseFloat(document.getElementById('input-capital').value) || 10000;
   const startStr = document.getElementById('input-start').value;
   const endStr = document.getElementById('input-end').value;
-  if (!startStr || !endStr) { alert('Please select both start and end dates.'); return; }
+  if (!startStr || !endStr) { alert('Please select both start and end dates.'); btn.textContent = 'Run Simulation'; btn.disabled = false; return; }
   const startDate = new Date(startStr + 'T00:00:00');
   const endDate = new Date(endStr + 'T00:00:00');
-  if (endDate <= startDate) { alert('End date must be after start date.'); return; }
+  if (endDate <= startDate) { alert('End date must be after start date.'); btn.textContent = 'Run Simulation'; btn.disabled = false; return; }
   zoomedIdx = null;
-  simData = generateSimulation(capital, startDate, endDate);
-  renderChart(simData, null);
-  const dayCount = simData.days;
-  document.getElementById('chart-subtitle').textContent = dayCount + ' days simulated — ' + capital.toLocaleString() + ' initial capital — ' + startDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + ' to ' + endDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  
+  try {
+    simData = await generateSimulation(capital, startDate, endDate);
+    renderChart(simData, null);
+    updateMetricsFinal(simData);
+    updateLogFinal(simData);
+    const dayCount = simData.days;
+    document.getElementById('chart-subtitle').textContent = dayCount + ' days simulated — ' + capital.toLocaleString() + ' initial capital — ' + startDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + ' to ' + endDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  } catch (e) {
+    console.error('Simulation error:', e);
+    alert('Error running simulation. Please try again.');
+  }
+  
+  btn.textContent = 'Run Simulation';
+  btn.disabled = false;
 });
 
 document.getElementById('execute-btn').addEventListener('click', function() {

@@ -1,0 +1,52 @@
+================================================================================
+NEURALEDGE - DAILY vs 8H MODEL COMPARISON
+================================================================================
+
+YOUR GOAL: Train 8H model, compare with Daily model, deploy better one
+
+STEP 1: Collect 8H Data (10-15 min)
+------------------------------------
+cd /home/shyam/UbuntuCode/CN\ 6000\ Mental\ Wealth\ Professional\ Life\ 3\ \(Project\)/Project
+
+uv run python Mango/collect_8h_data.py
+
+→ Output: btc_8h_full.csv
+→ Note: Needs CoinMetrics btc.csv (or use existing data from /data/)
+
+STEP 2: Train 8H Model (5-10 min)
+----------------------------------
+cd Mango/Model3_8H
+uv run python train_model3_8h.py
+
+→ Output: processed_model3_8h/model_best.pth
+→ Output: processed_model3_8h/metrics.json
+
+STEP 3: Compare Models (instant)
+---------------------------------
+cd ..
+uv run python ../compare_daily_vs_8h.py
+
+→ Shows: Accuracy, F1, Val Loss for both models
+→ Tells you which one to use!
+
+STEP 4: Deploy Winner
+----------------------
+If 8H wins: Update backend/main.py line 23-24 to use Model3_8H
+If Daily wins: Keep existing paths
+
+================================================================================
+QUICK START (copy-paste this):
+================================================================================
+
+cd /home/shyam/UbuntuCode/CN\ 6000\ Mental\ Wealth\ Professional\ Life\ 3\ \(Project\)/Project
+
+# Step 1: Collect data
+uv run python Mango/collect_8h_data.py
+
+# Step 2: Train model
+cd Mango/Model3_8H && uv run python train_model3_8h.py
+
+# Step 3: Compare
+cd .. && uv run python ../compare_daily_vs_8h.py
+
+================================================================================

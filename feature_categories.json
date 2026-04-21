@@ -1,0 +1,49 @@
+{
+  "price": [
+    "open",
+    "high",
+    "low",
+    "price",
+    "volume",
+    "return",
+    "log_return",
+    "vol_7p",
+    "vol_24p",
+    "ma_24",
+    "ma_168",
+    "price_ma_ratio"
+  ],
+  "onchain": [
+    "tx_count",
+    "hashrate",
+    "fees_btc",
+    "mempool_size",
+    "miners_revenue",
+    "difficulty"
+  ],
+  "sentiment": [],
+  "other": [
+    "range"
+  ],
+  "all": [
+    "open",
+    "high",
+    "low",
+    "price",
+    "volume",
+    "return",
+    "log_return",
+    "range",
+    "vol_7p",
+    "vol_24p",
+    "ma_24",
+    "ma_168",
+    "price_ma_ratio",
+    "tx_count",
+    "hashrate",
+    "fees_btc",
+    "mempool_size",
+    "miners_revenue",
+    "difficulty"
+  ]
+}

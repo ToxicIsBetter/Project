@@ -1,0 +1,31 @@
+{
+  "accuracy": 0.4298440979955457,
+  "f1": 0.564625850340136,
+  "best_threshold": 0.29999999999999993,
+  "best_val_loss": 0.6421679854393005,
+  "epochs_trained": 40,
+  "features": [
+    "AdrActCnt",
+    "AdrBalCnt",
+    "TxCnt",
+    "HashRate",
+    "BlkCnt",
+    "SplyExNtv",
+    "FlowInExNtv",
+    "CapMVRVCur",
+    "AdrActCnt_growth7d",
+    "AdrActCnt_growth30d",
+    "google_trends",
+    "gt_ma7",
+    "gt_ma30",
+    "gt_change7",
+    "gt_momentum",
+    "fear_greed",
+    "fg_ma7",
+    "fg_ma14",
+    "fg_change",
+    "fg_change7",
+    "fg_extreme_fear",
+    "fg_extreme_greed"
+  ]
+}

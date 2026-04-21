@@ -101,12 +101,21 @@ tailwind.config = {
 </div>
 </nav>
 
+<!-- Investment Disclaimer -->
+<div class="bg-error-container border-b border-error/20 px-4 py-3 text-center">
+  <p class="text-xs md:text-sm text-on-error-container">
+    <span class="font-bold">⚠️ Disclaimer:</span> This is NOT professional financial advice. 
+    For research and educational purposes only. Cryptocurrency investments carry risk — never invest more than you can afford to lose.
+  </p>
+</div>
+
 <main class="pt-20 pb-24 px-4 md:px-6 max-w-[1600px] mx-auto">
 <header class="flex flex-col gap-4 mb-6">
-<div>
-<h1 class="font-headline text-2xl md:text-4xl font-bold tracking-tighter neural-glow">Engine Room</h1>
-<p class="text-on-surface-variant text-xs md:text-sm mt-1">Model3_OnChain Neural Core | Live Inference</p>
-</div>
+<div class="flex flex-col gap-4 mb-6">
+    <div>
+    <h1 class="font-headline text-2xl md:text-4xl font-bold tracking-tighter neural-glow">Engine Room</h1>
+    <p class="text-on-surface-variant text-xs md:text-sm mt-1">Brain_Model_57 Fine-Tuned Dual-Head Transformer | Live Inference</p>
+    </div>
 <div class="grid grid-cols-3 gap-3 bg-surface-container p-3 md:p-4 rounded-xl border border-outline-variant/10">
 <div class="flex flex-col min-w-0">
 <span class="text-[9px] md:text-[0.6875rem] uppercase tracking-wider text-on-surface-variant font-medium truncate">Confidence</span>
@@ -252,16 +261,16 @@ Fusion Layer Status
 
 <!-- Execution Strategy Panel -->
 <div class="md:col-span-12 bg-surface-container-low rounded-xl p-4 md:p-8 border border-outline-variant/5">
-<div class="flex flex-col md:flex-row items-center justify-between gap-8">
-<div class="flex items-center gap-6">
-<div class="p-4 bg-primary/10 rounded-full">
-<span class="material-symbols-outlined text-primary text-4xl">precision_manufacturing</span>
-</div>
-<div>
-<h3 class="font-headline text-xl font-bold">Neural Execution Strategy</h3>
-<p class="text-on-surface-variant text-sm">Model3_OnChain inference across on-chain and sentiment data</p>
-</div>
-</div>
+                <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                <div class="flex items-center gap-6">
+                <div class="p-4 bg-primary/10 rounded-full">
+                <span class="material-symbols-outlined text-primary text-4xl">precision_manufacturing</span>
+                </div>
+                <div>
+                <h3 class="font-headline text-xl font-bold">Neural Execution Strategy</h3>
+                <p class="text-on-surface-variant text-sm">Brain_Model_57 fine-tuned Dual-Head Transformer with 57.46% accuracy</p>
+                </div>
+                </div>
 <div class="flex gap-4">
 <button id="btn-view-logs" class="px-8 py-3 bg-surface-container-highest border border-outline-variant/20 rounded-lg font-headline font-bold text-sm hover:bg-surface-container-high transition-colors cursor-pointer">
 VIEW FULL LOGS
@@ -368,28 +377,28 @@ async function refreshEngine() {
 document.getElementById('btn-deploy').addEventListener('click', function() {
   const btn = this;
   if (btn.disabled) return;
-  btn.textContent = 'Deploying...';
-  btn.disabled = true;
-  btn.style.opacity = '0.6';
-  addLog('DEPLOY ENGINE: Initializing Model3_OnChain inference pipeline...', 'secondary');
-  setTimeout(() => {
-    addLog('DEPLOY ENGINE: Loading on-chain feature set (6 features)...', 'on-surface-variant');
-  }, 500);
-  setTimeout(() => {
-    addLog('DEPLOY ENGINE: Loading sentiment feature set (12 features)...', 'on-surface-variant');
-  }, 1000);
-  setTimeout(() => {
-    addLog('DEPLOY ENGINE: Running forward pass through Dual-Head Transformer...', 'primary');
-  }, 1500);
-  setTimeout(() => {
-    addLog('DEPLOY ENGINE: Fusion layer synchronized. Inference complete.', 'secondary');
-    btn.textContent = '✓ Deployed';
-    btn.style.opacity = '1';
-    setTimeout(() => {
-      btn.textContent = 'DEPLOY ENGINE';
-      btn.disabled = false;
-    }, 2000);
-  }, 2500);
+btn.textContent = 'Deploying...';
+btn.disabled = true;
+btn.style.opacity = '0.6';
+addLog('DEPLOY ENGINE: Initializing Brain_Model_57 inference pipeline...', 'secondary');
+setTimeout(() => {
+addLog('DEPLOY ENGINE: Loading on-chain feature set (13 features)...', 'on-surface-variant');
+}, 500);
+setTimeout(() => {
+addLog('DEPLOY ENGINE: Loading sentiment feature set (12 features)...', 'on-surface-variant');
+}, 1000);
+setTimeout(() => {
+addLog('DEPLOY ENGINE: Running forward pass through fine-tuned Dual-Head Transformer...', 'primary');
+}, 1500);
+setTimeout(() => {
+addLog('DEPLOY ENGINE: Fusion layer synchronized. Inference complete. Accuracy: 57.46%', 'secondary');
+btn.textContent = '✓ Deployed';
+btn.style.opacity = '1';
+setTimeout(() => {
+btn.textContent = 'DEPLOY ENGINE';
+btn.disabled = false;
+}, 2000);
+}, 2500);
 });
 
 // View Full Logs button

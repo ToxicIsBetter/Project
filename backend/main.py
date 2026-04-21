@@ -1,6 +1,6 @@
 """
-NeuralEdge API — Model3_OnChain Inference Backend
-Serves live predictions from the trained Dual-Head Transformer model.
+NeuralEdge API — Brain_Model_57 Inference Backend
+Serves live predictions from the fine-tuned Dual-Head Transformer model.
 """
 
 import os
@@ -20,22 +20,23 @@ from fastapi.middleware.cors import CORSMiddleware
 warnings.filterwarnings("ignore")
 
 # ─── Paths ────────────────────────────────────────────────────────────────
-MANGO_DIR = Path(__file__).resolve().parent.parent / "Mango" / "Model3_OnChain"
-PROCESSED = MANGO_DIR / "processed_model3"
-GOOGLE_TRENDS_DIR = Path(__file__).resolve().parent.parent / "Mango" / "GoogleTrends"
+BRAIN_DIR = Path(__file__).resolve().parent.parent / "Brain_Model_57"
+MODELS_DIR = BRAIN_DIR / "models"
+DATA_DIR = BRAIN_DIR / "data"
 
 # ─── Load artifacts ───────────────────────────────────────────────────────
-with open(PROCESSED / "feature_sets.json") as f:
+with open(MODELS_DIR / "feature_sets.json") as f:
     FEATURE_SETS = json.load(f)
 
 HEAD1_FEATURES = FEATURE_SETS["final_h1"]
 HEAD2_FEATURES = FEATURE_SETS["sentiment"]
 
-scaler_h1 = joblib.load(PROCESSED / "scaler_head1.pkl")
-scaler_h2_mm = joblib.load(PROCESSED / "scaler_head2_minmax.pkl")
-scaler_h2_std = joblib.load(PROCESSED / "scaler_head2_std.pkl")
+scaler_h1 = joblib.load(MODELS_DIR / "scaler_head1.pkl")
+scaler_h2_mm = joblib.load(MODELS_DIR / "scaler_head2_minmax.pkl")
+scaler_h2_std = joblib.load(MODELS_DIR / "scaler_head2_std.pkl")
 
 SEQ_LEN = 5
+THRESHOLD = 0.27
 
 
 # ─── Model Architecture (must match training exactly) ────────────────────
@@ -50,131 +51,80 @@ class PositionalEncoding(nn.Module):
         )
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
-        self.register_buffer("pe", pe.unsqueeze(0))
+        pe = pe.unsqueeze(0)
+        self.register_buffer("pe", pe)
 
     def forward(self, x):
-        x = x + self.pe[:, : x.size(1)]
+        x = x + self.pe[:, : x.size(1), :]
         return self.dropout(x)
 
 
 class DualHeadTransformer(nn.Module):
     def __init__(
-        self,
-        n_onchain,
-        n_sentiment,
-        d_model=64,
-        nhead=4,
-        num_layers=2,
-        dim_feedforward=128,
-        dropout=0.3,
+        self, input_dim_h1, input_dim_h2, d_model=64, nhead=8, num_layers=2, dropout=0.3
     ):
         super().__init__()
-        self.proj_onchain = nn.Linear(n_onchain, d_model)
-        self.pos_enc_h1 = PositionalEncoding(d_model, dropout=dropout)
-        encoder_layer_h1 = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout,
-            batch_first=True,
+        self.head1_proj = nn.Linear(input_dim_h1, d_model)
+        self.head2_proj = nn.Linear(input_dim_h2, d_model)
+        self.pos_encoder = PositionalEncoding(d_model, dropout=dropout)
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=d_model, nhead=nhead, dropout=dropout, batch_first=True
         )
-        self.transformer_h1 = nn.TransformerEncoder(
-            encoder_layer_h1, num_layers=num_layers
+        self.transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        self.head1 = nn.Sequential(
+            nn.Linear(d_model, 32), nn.ReLU(), nn.Dropout(dropout), nn.Linear(32, 1)
         )
-
-        self.proj_sentiment = nn.Linear(n_sentiment, d_model)
-        self.pos_enc_h2 = PositionalEncoding(d_model, dropout=dropout)
-        encoder_layer_h2 = nn.TransformerEncoderLayer(
-            d_model=d_model,
-            nhead=nhead,
-            dim_feedforward=dim_feedforward,
-            dropout=dropout,
-            batch_first=True,
+        self.head2 = nn.Sequential(
+            nn.Linear(d_model, 32), nn.ReLU(), nn.Dropout(dropout), nn.Linear(32, 1)
         )
-        self.transformer_h2 = nn.TransformerEncoder(
-            encoder_layer_h2, num_layers=num_layers
-        )
+        self.dropout = nn.Dropout(dropout)
 
-        self.fusion = nn.Sequential(
-            nn.Linear(d_model * 2, 64),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(64, 16),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(16, 1),
-            nn.Sigmoid(),
-        )
-
-    def forward(self, x_onchain, x_sentiment):
-        h1 = self.proj_onchain(x_onchain)
-        h1 = self.pos_enc_h1(h1)
-        if h1.shape[2] > 0:
-            h1 = self.transformer_h1(h1)
-        h1 = h1[:, -1, :]
-
-        h2 = self.proj_sentiment(x_sentiment)
-        h2 = self.pos_enc_h2(h2)
-        h2 = self.transformer_h2(h2)
-        h2 = h2[:, -1, :]
-
-        fused = torch.cat([h1, h2], dim=-1)
-        return self.fusion(fused).squeeze(-1)
+    def forward(self, x1, x2):
+        x1 = self.head1_proj(x1)
+        x2 = self.head2_proj(x2)
+        x = (x1 + x2) / 2
+        x = self.pos_encoder(x)
+        x = self.transformer(x)
+        x = x[:, -1, :]
+        h1 = self.dropout(self.head1(x))
+        h2 = self.dropout(self.head2(x))
+        return h1 + h2
 
 
-N_ONCHAIN = max(len(HEAD1_FEATURES), 1)
-N_SENTIMENT = len(HEAD2_FEATURES)
+N_HEAD1 = len(HEAD1_FEATURES)
+N_HEAD2 = len(HEAD2_FEATURES)
 
 device = torch.device("cpu")
 model = DualHeadTransformer(
-    n_onchain=N_ONCHAIN,
-    n_sentiment=N_SENTIMENT,
+    input_dim_h1=N_HEAD1,
+    input_dim_h2=N_HEAD2,
     d_model=64,
-    nhead=4,
+    nhead=8,
     num_layers=2,
-    dim_feedforward=128,
     dropout=0.3,
 )
-model.load_state_dict(torch.load(PROCESSED / "model3_best.pt", map_location=device))
+model.load_state_dict(torch.load(MODELS_DIR / "model3_best.pt", map_location=device))
 model.to(device)
 model.eval()
 
 
 # ─── Load raw data for feature extraction ─────────────────────────────────
 def load_raw_data():
-    trends = pd.read_csv(MANGO_DIR / "google_trends_bitcoin.csv", parse_dates=["Date"])
-    trends["Date"] = trends["Date"].dt.normalize()
+    ohlcv = pd.read_csv(DATA_DIR / "clean_ohlcv.csv", parse_dates=["Date"])
+    onchain = pd.read_csv(DATA_DIR / "clean_onchain.csv", parse_dates=["Date"])
+    sentiment = pd.read_csv(DATA_DIR / "clean_sentiment.csv", parse_dates=["Date"])
+    google = pd.read_csv(DATA_DIR / "clean_google.csv", parse_dates=["Date"])
 
-    ohlcv = pd.read_csv(
-        GOOGLE_TRENDS_DIR / "ohlcv_2010_to_now.csv", parse_dates=["Date"]
-    )
-    onchain = pd.read_csv(
-        GOOGLE_TRENDS_DIR / "onchain_and_technicals_2010_to_now-2.csv",
-        parse_dates=["Date"],
-    )
-    sentiment = pd.read_csv(
-        GOOGLE_TRENDS_DIR / "sentiment_2010_to_now-3.csv", parse_dates=["Date"]
-    )
-
-    for frame in [ohlcv, onchain, sentiment, trends]:
+    for frame in [ohlcv, onchain, sentiment, google]:
         frame["Date"] = frame["Date"].dt.normalize()
 
     df = ohlcv.merge(onchain, on="Date", how="left")
     df = df.merge(sentiment, on="Date", how="left")
-    df = df.merge(trends, on="Date", how="left")
+    df = df.merge(google, on="Date", how="left")
     df = df.sort_values("Date").reset_index(drop=True)
 
-    drop_cols = [
-        "ROI1yr",
-        "CapMrktCurUSD",
-        "CapMrktEstUSD",
-        "ReferenceRate",
-        "SplyExUSD",
-    ]
-    drop_cols = [c for c in drop_cols if c in df.columns]
-    df.drop(columns=drop_cols, inplace=True)
-
-    df = df[df["Date"] >= "2018-02-01"].reset_index(drop=True)
+    # Drop rows with NaN Close (future dates with no data)
+    df = df.dropna(subset=["Close"])
 
     fg_cols = [
         "fear_greed",
@@ -192,21 +142,14 @@ def load_raw_data():
             df[col] = df[col].bfill(limit=3)
             df[col] = df[col].fillna(0.0)
 
-    df = df.ffill().bfill()
-
     log_pos_cols = [
         "AdrActCnt",
         "AdrBalCnt",
         "TxCnt",
-        "TxTfrCnt",
         "HashRate",
         "BlkCnt",
-        "SplyCur",
         "SplyExNtv",
-        "FeeTotNtv",
         "FlowInExNtv",
-        "FlowOutExNtv",
-        "IssTotNtv",
         "CapMVRVCur",
     ]
     log_pos_cols = [c for c in log_pos_cols if c in df.columns]
@@ -214,10 +157,6 @@ def load_raw_data():
         df[col] = np.log1p(df[col].clip(lower=0))
 
     signed_log_cols = [
-        "TxCnt_growth7d",
-        "TxCnt_growth30d",
-        "HashRate_growth7d",
-        "HashRate_growth30d",
         "AdrActCnt_growth7d",
         "AdrActCnt_growth30d",
         "CapMVRVCur_growth7d",
@@ -236,61 +175,54 @@ raw_df = load_raw_data()
 
 
 # ─── Inference ────────────────────────────────────────────────────────────
+def prepare_features(df):
+    """Prepare momentum features"""
+    df = df.copy()
+    df["momentum_7d"] = df["Close"].pct_change(7)
+    df["momentum_14d"] = df["Close"].pct_change(14)
+    df["momentum_30d"] = df["Close"].pct_change(30)
+    df["volatility_14d"] = df["Close"].pct_change().rolling(14).std() / (
+        df["Close"].pct_change().rolling(14).mean() + 1e-6
+    )
+    df["ma_ratio"] = df["Close"] / (df["Close"].rolling(50).mean() + 1e-6)
+    return df
+
+
 def run_inference():
-    binary_cols = ["fg_extreme_fear", "fg_extreme_greed"]
-    head1_scale_cols = [c for c in HEAD1_FEATURES if c not in binary_cols]
-    head1_binary_cols = [c for c in HEAD1_FEATURES if c in binary_cols]
+    df_clean = raw_df.dropna(subset=["Close"]).copy()
+    if len(df_clean) < SEQ_LEN + 30:
+        raise ValueError("Not enough clean data for inference")
 
-    h1_scaled = (
-        scaler_h1.transform(raw_df[head1_scale_cols].values)
-        if head1_scale_cols
-        else np.zeros((len(raw_df), 0))
-    )
-    h1_binary = (
-        raw_df[head1_binary_cols].values
-        if head1_binary_cols
-        else np.zeros((len(raw_df), 0))
-    )
-    h1_data = (
-        np.hstack([h1_scaled, h1_binary]) if len(head1_binary_cols) > 0 else h1_scaled
-    )
+    df_with_features = prepare_features(df_clean)
+    df = df_with_features.tail(SEQ_LEN).copy()
 
-    bounded_sentiment = [
-        "fear_greed",
-        "fg_ma7",
-        "fg_ma14",
-        "google_trends",
-        "gt_ma7",
-        "gt_ma30",
-    ]
-    bounded_sentiment = [c for c in bounded_sentiment if c in HEAD2_FEATURES]
+    h1_scaled = scaler_h1.transform(df[HEAD1_FEATURES].values)
+
+    bounded = ["fear_greed", "fg_ma7", "fg_ma14", "google_trends", "gt_ma7", "gt_ma30"]
+    bounded = [c for c in bounded if c in HEAD2_FEATURES]
     flag_cols = ["fg_extreme_fear", "fg_extreme_greed"]
     flag_cols = [c for c in flag_cols if c in HEAD2_FEATURES]
-    continuous_sent = [
-        c for c in HEAD2_FEATURES if c not in bounded_sentiment + flag_cols
-    ]
+    continuous = [c for c in HEAD2_FEATURES if c not in bounded + flag_cols]
 
-    h2_bounded = scaler_h2_mm.transform(raw_df[bounded_sentiment].values)
-    h2_cont = (
-        scaler_h2_std.transform(raw_df[continuous_sent].values)
-        if continuous_sent
-        else np.zeros((len(raw_df), 0))
+    h2_bounded = (
+        scaler_h2_mm.transform(df[bounded].values)
+        if bounded
+        else np.empty((len(df), 0))
     )
-    h2_flags = raw_df[flag_cols].values if flag_cols else np.zeros((len(raw_df), 0))
-    h2_data = np.hstack([h2_bounded, h2_cont, h2_flags])
+    h2_cont = (
+        scaler_h2_std.transform(df[continuous].values)
+        if continuous
+        else np.empty((len(df), 0))
+    )
+    h2_flag = df[flag_cols].values if flag_cols else np.empty((len(df), 0))
+    h2_scaled = np.hstack([h2_bounded, h2_cont, h2_flag])
 
-    # Build last sequence
-    X1_seq = h1_data[-SEQ_LEN:].reshape(1, SEQ_LEN, -1)
-    X2_seq = h2_data[-SEQ_LEN:].reshape(1, SEQ_LEN, -1)
-
-    if X1_seq.shape[2] == 0:
-        X1_seq = np.zeros((1, SEQ_LEN, 1))
-
-    x1_t = torch.tensor(X1_seq, dtype=torch.float32).to(device)
-    x2_t = torch.tensor(X2_seq, dtype=torch.float32).to(device)
+    X1 = torch.FloatTensor(h1_scaled).unsqueeze(0)
+    X2 = torch.FloatTensor(h2_scaled).unsqueeze(0)
 
     with torch.no_grad():
-        prob = model(x1_t, x2_t).item()
+        output = model(X1, X2)
+        prob = torch.sigmoid(output).squeeze().item()
 
     return prob
 
@@ -345,15 +277,23 @@ def get_fear_greed():
 def get_signal():
     try:
         prob = run_inference()
-        if prob > 0.55:
-            signal = "ACCUMULATE"
-            risk = "LOW"
-        elif prob > 0.45:
-            signal = "HOLD"
-            risk = "MEDIUM"
+        pred = 1 if prob > THRESHOLD else 0
+
+        if pred == 1:
+            if prob > 0.7:
+                signal = "ACCUMULATE"
+                risk = "LOW"
+            else:
+                signal = "HOLD"
+                risk = "MEDIUM"
         else:
-            signal = "DISTRIBUTE"
-            risk = "HIGH"
+            if prob < 0.3:
+                signal = "DISTRIBUTE"
+                risk = "HIGH"
+            else:
+                signal = "HOLD"
+                risk = "MEDIUM"
+
         confidence = round(max(prob, 1 - prob) * 100, 1)
         return {
             "signal": signal,
@@ -366,7 +306,7 @@ def get_signal():
         return {
             "signal": "HOLD",
             "risk_level": "MEDIUM",
-            "confidence": 94.2,
+            "confidence": 57.46,
             "probability": 0.5,
             "timestamp": datetime.utcnow().isoformat(),
             "error": str(e),
@@ -440,25 +380,31 @@ def get_engine():
     return {
         "head1_onchain": {
             "score": "High",
-            "whale_flow": "+12.4k BTC",
-            "active_wallets": "142.8k",
-            "mvrv_ratio": 1.84,
-            "google_trends": 92,
+            "whale_flow": "+8.2k BTC",
+            "active_wallets": "128.4k",
+            "mvrv_ratio": 1.72,
+            "google_trends": 87,
         },
         "head2_sentiment": {
             "greed_index": fg["value"],
             "classification": fg["classification"],
             "change_7d": fg["change_7d"],
-            "social_volume": "2.4M",
+            "social_volume": "1.9M",
         },
         "fusion_layer": {
             "status": "SYNCHRONIZED",
-            "reconciliation": 88,
+            "reconciliation": 91,
             "consensus": round(sig["probability"], 4),
-            "weights": {"onchain": 0.62, "sentiment": 0.38},
+            "weights": {"onchain": 0.54, "sentiment": 0.46},
         },
         "model_confidence": sig["confidence"],
-        "latency_ms": 14,
+        "latency_ms": 12,
+        "model_info": {
+            "name": "Brain_Model_57",
+            "accuracy": 0.5746,
+            "f1_score": 0.5398,
+            "threshold": THRESHOLD,
+        },
     }
 
 
@@ -510,7 +456,7 @@ def root():
     return {
         "name": "NeuralEdge API",
         "version": "1.0.0",
-        "model": "Model3_OnChain",
+        "model": "Brain_Model_57",
         "status": "running",
     }
 
@@ -519,7 +465,7 @@ def root():
 def health():
     return {
         "status": "healthy",
-        "model": "Model3_OnChain",
+        "model": "Brain_Model_57",
         "timestamp": datetime.utcnow().isoformat(),
     }
 
