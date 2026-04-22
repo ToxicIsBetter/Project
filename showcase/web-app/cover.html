@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuralEdge | Academic Cover</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: "#58a6ff",
+            surface: "#0a0e14",
+          },
+          fontFamily: {
+            headline: ["Space Grotesk", "sans-serif"],
+            body: ["Inter", "sans-serif"],
+          }
+        }
+      }
+    }
+    </script>
+    <style>
+        .neural-glow { filter: drop-shadow(0 0 15px rgba(88, 166, 255, 0.4)); }
+        .hero-gradient { background: radial-gradient(circle at 50% 50%, rgba(88, 166, 255, 0.05) 0%, transparent 70%); }
+    </style>
+</head>
+<body class="bg-surface text-slate-300 font-body min-h-screen flex flex-col justify-center items-center relative hero-gradient px-4">
+    
+    <!-- Light decorative background -->
+    <div class="absolute inset-0 z-0 pointer-events-none opacity-10 flex items-center justify-center">
+        <svg width="800" height="800" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <line x1="100" y1="60" x2="60" y2="140" stroke="#58a6ff" stroke-width="0.5" stroke-dasharray="2,5" />
+            <line x1="60" y1="140" x2="140" y2="140" stroke="#67df70" stroke-width="0.5" stroke-dasharray="2,5" />
+            <line x1="140" y1="140" x2="100" y2="60" stroke="#58a6ff" stroke-width="0.5" stroke-dasharray="2,5" />
+        </svg>
+    </div>
+
+    <!-- Main Content -->
+    <div class="z-10 text-center w-full max-w-2xl px-6">
+        
+        <!-- Interactive NeuralEdge Header -->
+        <a href="http://localhost:8000/index.html" class="inline-block transition-transform hover:scale-105 active:scale-95 group mb-16 relative">
+            <h1 class="font-headline text-5xl md:text-7xl font-bold tracking-tighter text-primary neural-glow flex items-center justify-center gap-4">
+                <img src="favicon.png" alt="Logo" class="w-12 h-12 md:w-16 md:h-16 opacity-90 group-hover:opacity-100 transition-opacity">
+                NEURALEDGE
+            </h1>
+            <span class="absolute -bottom-6 w-full text-center text-[10px] uppercase tracking-widest text-[#67df70] font-bold opacity-0 group-hover:opacity-100 transition-opacity">Click to launch application</span>
+        </a>
+
+        <!-- Academic Information Box -->
+        <div class="space-y-10 bg-white/5 border border-white/10 p-10 md:p-14 rounded-2xl backdrop-blur-md shadow-2xl shadow-primary/5 hover:border-white/20 transition-colors">
+            
+            <div class="space-y-2">
+                <h2 class="text-2xl md:text-3xl font-medium text-white tracking-wide">SHYAM VIJAY JAGANI</h2>
+                <p class="text-sm md:text-base text-slate-400 font-light">Supervisor: Dr. Mustansar Ghazanfar</p>
+            </div>
+
+            <div class="w-16 h-px bg-slate-700 mx-auto"></div>
+
+            <div class="space-y-2">
+                <p class="text-lg md:text-xl font-medium text-slate-200">Course: BSc (Hons) Data Science and AI</p>
+            </div>
+            
+        </div>
+    </div>
+    
+</body>
+</html>

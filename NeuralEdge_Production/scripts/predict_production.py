@@ -77,6 +77,7 @@ class ProductionPredictor:
         print(f"   Threshold: {self.metadata['threshold']}")
 
     def get_latest_data(self):
+        print("   [1/3] Loading source CSVs...")
         # Merge exactly like training
         ohlcv = pd.read_csv(os.path.join(self.data_src, 'clean_ohlcv.csv'), parse_dates=['Date'])
         onchain = pd.read_csv(os.path.join(self.data_src, 'clean_onchain.csv'), parse_dates=['Date'])
@@ -86,9 +87,11 @@ class ProductionPredictor:
         for frame in [ohlcv, onchain, sentiment, google]:
             frame['Date'] = frame['Date'].dt.normalize()
 
+        print("   [2/3] Merging datasets over 2018-Present timeline...")
         df = ohlcv.merge(onchain, on='Date', how='left').merge(sentiment, on='Date', how='left').merge(google, on='Date', how='left')
         df = df.sort_values('Date').ffill().bfill()
         
+        print("   [3/3] Calculating momentum and rolling features...")
         # Add momentum
         df['momentum_7d'] = df['Close'].pct_change(7)
         

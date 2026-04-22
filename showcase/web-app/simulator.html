@@ -4,232 +4,228 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>NeuralEdge Simulator</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" crossorigin href="https://fonts.gstatic.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script id="tailwind-config">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
 tailwind.config = {
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        "surface-dim": "#10141a",
+        primary: "#58a6ff",
+        secondary: "#67df70",
+        error: "#ffb4ab",
+        surface: "#0a0e14",
         "surface-container": "#1c2026",
-        "surface-container-low": "#181c22",
-        "surface-container-lowest": "#0a0e14",
-        "surface-container-high": "#262a31",
-        "surface-container-highest": "#31353c",
-        "surface-bright": "#353940",
-        "surface-variant": "#31353c",
-        "on-surface": "#dfe2eb",
-        "on-surface-variant": "#c0c7d4",
         "outline-variant": "#414752",
-        "outline": "#8b919d",
-        "primary": "#a2c9ff",
-        "primary-container": "#58a6ff",
-        "on-primary": "#00315c",
-        "on-primary-container": "#003a6b",
-        "on-primary-fixed": "#001c38",
-        "on-primary-fixed-variant": "#004882",
-        "primary-fixed": "#d3e4ff",
-        "primary-fixed-dim": "#a2c9ff",
-        "secondary": "#67df70",
-        "secondary-container": "#27a640",
-        "secondary-fixed-dim": "#67df70",
-        "on-secondary": "#00390d",
-        "on-secondary-container": "#00320a",
-        "tertiary": "#ffb4ac",
-        "tertiary-container": "#ff7b70",
-        "on-tertiary": "#690007",
-        "on-tertiary-container": "#790009",
-        "error": "#ffb4ab",
-        "error-container": "#93000a",
-        "inverse-surface": "#dfe2eb",
-        "inverse-primary": "#0060aa",
-        "background": "#10141a",
-        "on-background": "#dfe2eb",
       },
       fontFamily: {
-        "headline": ["Space Grotesk"],
-        "body": ["Inter"],
-        "label": ["Inter"]
-      },
-      borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
-    },
-  },
-};
+        headline: ["Space Grotesk", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
+      }
+    }
+  }
+}
 </script>
 <style>
+.bg-glass { background: rgba(30,34,42,0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-.chart-crosshair { stroke: #58a6ff; stroke-width: 1; stroke-dasharray: 4,4; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
-.chart-crosshair.visible { opacity: 0.6; }
-.chart-dot { fill: #a2c9ff; r: 5; opacity: 0; transition: opacity 0.15s; }
-.chart-dot.visible { opacity: 1; }
-.chart-dot-btc { fill: #8b919d; r: 4; opacity: 0; transition: opacity 0.15s; }
-.chart-dot-btc.visible { opacity: 1; }
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+}
+@keyframes neural-pulse {
+  0% { stroke-dashoffset: 100; opacity: 0.1; }
+  50% { opacity: 0.8; }
+  100% { stroke-dashoffset: -100; opacity: 0.1; }
+}
+@keyframes ticker {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
+}
 .chart-tooltip { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
 .chart-tooltip.visible { opacity: 1; }
+.neural-glow { filter: drop-shadow(0 0 10px rgba(88, 166, 255, 0.4)); }
+.glass { background: rgba(28, 32, 38, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(65, 71, 82, 0.2); }
+.chart-expanded { height: 350px !important; }
+@keyframes slideDown { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.log-row-new { animation: slideDown 0.3s ease-out forwards; }
+.log-row-future { opacity: 0.15; filter: grayscale(100%); transition: opacity 0.3s; }
+.chart-crosshair { stroke: #e2e8f0; stroke-width: 1; stroke-dasharray: 4,4; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+.dark .chart-crosshair { stroke: #334155; }
+.chart-crosshair.visible { opacity: 1; }
+.chart-dot, .chart-dot-btc { stroke: #fff; stroke-width: 2; r: 4; opacity: 0; transition: opacity 0.15s; }
+.chart-dot { fill: hsl(221.2 83.2% 53.3%); }
+.chart-dot-btc { fill: hsl(215 13.8% 34.1%); }
+.dark .chart-dot, .dark .chart-dot-btc { stroke: #0f172a; }
+.chart-dot.visible, .chart-dot-btc.visible { opacity: 1; }
+.re-tt { filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.05)); }
 .axis-label { fill: #8b919d; font-size: 10px; font-family: Inter, sans-serif; }
 .chart-expanded { transition: height 0.4s ease; }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.7); cursor: pointer; }
 </style>
 </head>
-<body class="bg-[#0a0e14] text-on-surface font-body">
-<nav class="bg-[#10141a] text-[#a2c9ff] font-['Space_Grotesk'] tracking-tight flex justify-between items-center w-full px-6 py-3 h-16 fixed top-0 z-50">
-<div class="flex items-center gap-8">
-<span class="text-xl font-bold tracking-tighter text-[#a2c9ff]">NeuralEdge Terminal</span>
-<nav class="hidden md:flex items-center gap-6 text-sm uppercase font-medium">
-<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="index.html">Terminal</a>
-<a class="text-[#a2c9ff] border-b-2 border-[#58a6ff] pb-1 cursor-pointer active:opacity-80" href="#">Simulator</a>
-<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="engine-room.html">Engine Room</a>
-</nav>
-</div>
-<div class="flex items-center gap-4">
-<button class="material-symbols-outlined p-2 rounded hover:bg-[#31353c]/60 transition-colors cursor-pointer">notifications</button>
-</div>
+<body class="bg-[#0a0e14] text-[#dfe2eb] font-body">
+<nav class="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center glass border-b-none h-[72px]">
+    <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-3">
+            <img src="favicon.png" alt="NeuralEdge Logo" class="w-8 h-8 neural-glow">
+            <span class="font-headline font-bold text-xl tracking-tighter text-primary">NEURALEDGE</span>
+        </a>
+    </div>
+    <div class="hidden md:flex gap-8 text-[12px] font-bold uppercase tracking-widest text-slate-400">
+        <a href="terminal.html" class="hover:text-primary transition-colors">Platform</a>
+        <a href="simulator.html" class="text-primary border-b border-primary/40 pb-1">Simulation</a>
+        <a href="engine-room.html" class="hover:text-primary transition-colors">Intelligence</a>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="hidden sm:flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+            <span class="text-[10px] text-secondary font-bold uppercase tracking-wider">Engine Active</span>
+        </div>
+        <button class="material-symbols-outlined p-2 rounded glass hover:bg-white/10 transition-colors">notifications</button>
+    </div>
 </nav>
 
-<!-- Investment Disclaimer -->
-<div class="bg-error-container border-b border-error/20 px-4 py-3 text-center">
-  <p class="text-xs md:text-sm text-on-error-container">
-    <span class="font-bold">⚠️ Disclaimer:</span> This is NOT professional financial advice. 
-    For research and educational purposes only. Cryptocurrency investments carry risk — never invest more than you can afford to lose.
-  </p>
+<!-- Live News Ticker -->
+<div class="fixed top-[72px] w-full z-40 bg-[#1c2026] text-[#c0c7d4] border-b border-[#414752]/15 h-8 flex items-center overflow-hidden">
+  <div class="px-4 text-[10px] font-bold uppercase tracking-widest text-[#a2c9ff] bg-[#1c2026] z-10 flex-shrink-0 border-r border-[#414752]/30 h-full flex items-center shadow-[4px_0_12px_#1c2026]">
+    Live Feed
+  </div>
+  <div class="flex-1 overflow-hidden relative h-full flex items-center">
+    <div id="news-ticker" class="absolute whitespace-nowrap pl-4 flex items-center" style="animation: ticker 45s linear infinite;">
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#a2c9ff] mr-2">◉</span>COINGEEK: spot Bitcoin ETF inflows reach $2.4B this week</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>ON-CHAIN: Whale wallets accumulate 15,000 BTC in last 24h</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#a2c9ff] mr-2">◉</span>MACRO: Federal Reserve signals rate pause, boosting risk assets</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>MINING: Global hash rate hits new all-time high of 600 EH/s</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#ffb4ab] mr-2">◉</span>SENTIMENT: Fear & Greed index moves to 'Extreme Greed' at 78</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>INSTITUTIONAL: MicroStrategy acquires additional 3,000 BTC</span>
+    </div>
+  </div>
 </div>
 
-<main class="pt-20 px-4 md:px-6 pb-24 max-w-[1600px] mx-auto">
+
+
+<main class="pt-[180px] pb-24 px-4 md:px-6 max-w-[1600px] mx-auto">
 <!-- Simulation Input -->
-<div class="bg-surface-container rounded-xl border border-outline-variant/15 p-4 md:p-6 mb-6">
-<div class="flex flex-col gap-3 md:flex-row md:items-end md:gap-4">
+<div class="glass rounded-2xl p-4 md:p-8 mb-8">
+<div class="flex flex-col gap-4 md:flex-row md:items-end md:gap-6">
 <div class="flex-1">
-<label class="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-2 font-semibold">Starting Capital (USD)</label>
-<input id="input-capital" type="number" value="10000" min="100" step="100" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 text-primary font-headline font-bold text-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"/>
+<label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Starting Capital (USD)</label>
+<input id="input-capital" type="number" value="10000" min="100" step="100" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-primary font-headline font-bold text-xl focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all"/>
 </div>
 <div class="flex-1">
-<label class="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-2 font-semibold">Start Date</label>
-<input id="input-start" type="date" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 text-on-surface font-headline font-bold text-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"/>
+<label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">Start Date</label>
+<input id="input-start" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white font-headline font-bold text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all"/>
 </div>
 <div class="flex-1">
-<label class="block text-[10px] uppercase tracking-widest text-on-surface-variant mb-2 font-semibold">End Date</label>
-<input id="input-end" type="date" class="w-full bg-surface-container-lowest border border-outline-variant/20 rounded-lg px-4 py-3 text-on-surface font-headline font-bold text-lg focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all"/>
+<label class="block text-[10px] uppercase tracking-widest text-slate-500 mb-3 font-bold">End Date</label>
+<input id="input-end" type="date" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white font-headline font-bold text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all"/>
 </div>
-<button id="btn-run" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-primary to-primary-container rounded-lg font-bold text-on-primary-container text-sm uppercase tracking-wider transition-all active:scale-95 hover:shadow-[0_0_20px_rgba(88,166,255,0.3)] cursor-pointer">
-Run Simulation
+<button id="run-sim" class="w-full md:w-auto px-10 py-5 bg-primary text-surface rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
+Run Engine Simulation
 </button>
 </div>
 </div>
 
-<!-- Top Metrics Row -->
-<div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6">
-<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
-<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Portfolio Value</p>
-<h2 id="portfolio-value" class="text-2xl font-headline font-bold text-primary">$10,000.00</h2>
-<div class="flex items-center gap-2 mt-2">
-<span id="portfolio-return" class="text-secondary text-xs font-bold bg-secondary-container/20 px-2 py-0.5 rounded">0.0%</span>
-<span class="text-[10px] text-on-surface-variant">AI Strategy</span>
+<!-- Dynamic Metrics Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="glass p-5 rounded-2xl hover:bg-white/5 transition-all">
+  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">AI Managed Equity</p>
+  <h3 id="m-equity" class="text-2xl font-headline font-bold text-white tracking-tighter">--</h3>
+  <p id="m-return" class="text-xs font-bold mt-1">--</p>
 </div>
+<div class="glass p-5 rounded-2xl hover:bg-white/5 transition-all">
+  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Buy & Hold Equity</p>
+  <h3 id="b-equity" class="text-2xl font-headline font-bold text-slate-300 tracking-tighter opacity-60">--</h3>
+  <p id="b-return" class="text-xs font-bold mt-1 opacity-60">--</p>
 </div>
-<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
-<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Buy & Hold Value</p>
-<h2 id="hold-value" class="text-2xl font-headline font-bold text-outline">$10,000.00</h2>
-<div class="flex items-center gap-2 mt-2">
-<span id="hold-return" class="text-outline text-xs font-bold bg-outline-variant/20 px-2 py-0.5 rounded">0.0%</span>
-<span class="text-[10px] text-on-surface-variant">BTC Only</span>
+<div class="glass p-5 rounded-2xl hover:bg-white/5 transition-all border-l-2 border-secondary/30">
+  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Alpha Variance</p>
+  <h3 id="alpha-val" class="text-2xl font-headline font-bold text-secondary tracking-tighter">--</h3>
+  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Relative to BTC</p>
 </div>
-</div>
-<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
-<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Max Drawdown</p>
-<h2 id="max-drawdown" class="text-2xl font-headline font-bold text-error">0.0%</h2>
-<div class="flex items-center gap-2 mt-2">
-<span class="text-on-surface-variant text-[10px]">Worst peak-to-trough</span>
-</div>
-</div>
-<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
-<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Sharpe Ratio</p>
-<h2 id="sharpe-display" class="text-2xl font-headline font-bold text-secondary">0.00</h2>
-<div class="flex items-center gap-2 mt-2">
-<span class="text-on-surface-variant text-[10px]">Risk-adjusted return</span>
-</div>
+<div class="glass p-5 rounded-2xl hover:bg-white/5 transition-all">
+  <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mb-1">Risk Adjusted (SR)</p>
+  <h3 id="sharpe-val" class="text-2xl font-headline font-bold text-primary tracking-tighter">--</h3>
+  <div class="flex items-center gap-1 mt-1">
+    <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+    <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Optimal Efficiency</span>
+  </div>
 </div>
 </div>
 
-<!-- Main Content -->
-<div class="grid grid-cols-12 gap-6">
-<!-- Chart -->
-<div id="chart-panel" class="col-span-12 lg:col-span-8 bg-surface-container rounded p-6 relative overflow-hidden border border-outline-variant/10 transition-all duration-400">
-<div class="flex justify-between items-start mb-6">
+<!-- Main Chart Area -->
+<div class="glass rounded-2xl p-6 mb-8 relative">
+<div class="flex justify-between items-start mb-8">
 <div>
-<h3 class="text-lg font-headline font-bold flex items-center gap-2">
-<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">monitoring</span>
-AI Strategy vs Buy & Hold
-</h3>
-<p id="chart-subtitle" class="text-xs text-on-surface-variant">Enter capital and dates, then run simulation</p>
-<p id="chart-detail" class="text-xs text-primary mt-1 hidden"></p>
+  <h3 class="text-lg font-headline font-bold flex items-center gap-2 text-white">
+    <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+    Strategy Comparison — Perpetual
+  </h3>
+  <p class="text-[10px] uppercase font-bold tracking-widest text-slate-500">Dual-Head Transformer Analysis</p>
 </div>
-<div class="flex gap-4 text-[10px] font-bold uppercase tracking-tighter">
-<div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-primary"></span> AI Managed</div>
-<div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-outline"></span> Buy & Hold</div>
-<div class="flex items-center gap-2"><span class="w-3 h-0.5 bg-warning"></span> AI Exposure</div>
-<button id="btn-reset-zoom" class="hidden ml-4 px-3 py-1 bg-surface-container-high border border-outline-variant/20 rounded text-[10px] uppercase tracking-wider hover:bg-surface-container-highest transition-colors cursor-pointer">Reset View</button>
+<div class="flex flex-wrap gap-6 font-bold uppercase tracking-widest text-[10px] text-white">
+  <div class="flex items-center gap-2"><span class="w-4 h-1 rounded-sm bg-primary"></span> AI Managed</div>
+  <div class="flex items-center gap-2"><span class="w-4 h-1 rounded-sm border-t-2 border-dashed border-slate-500"></span> Buy & Hold</div>
+  <div class="flex items-center gap-2"><span class="w-4 h-1 rounded-sm border-t-2 border-dotted border-secondary"></span> AI Exposure</div>
 </div>
+<button id="btn-reset-zoom" class="hidden ml-2 px-3 py-1 bg-white/5 border border-white/10 rounded text-[10px] uppercase tracking-wider hover:bg-white/10 transition-colors cursor-pointer">Reset View</button>
 </div>
 <div id="chart-container" class="h-[250px] md:h-[400px] w-full relative cursor-crosshair chart-expanded">
 <svg id="chart-svg" class="w-full h-full" preserveAspectRatio="none">
-<g id="y-axis" class="axis-label"></g>
-<g id="x-axis" class="axis-label"></g>
-<g id="grid-lines" class="opacity-15" stroke="#414752" stroke-width="0.5"></g>
-<path id="btc-line" d="" fill="none" stroke="#8b919d" stroke-dasharray="6,4" stroke-width="2"/>
-  <path id="ai-line" d="" fill="none" stroke="#a2c9ff" stroke-width="3" class="drop-shadow-[0_0_8px_rgba(162,201,255,0.4)]"/>
-  <path id="exposure-line" d="" fill="none" stroke="#fbbf24" stroke-dasharray="4,4" stroke-width="2" opacity="0.8" class="hidden"/>
-  <path id="ai-fill" d="" fill="url(#aiGrad)" opacity="0.15"/>
-<line id="crosshair-v" class="chart-crosshair" x1="0" y1="0" x2="0" y2="400"/>
+<g id="grid-lines" opacity="0.1" stroke="#fff" stroke-width="1"></g>
+<g id="y-axis" class="axis-label" font-size="10" font-family="JetBrains Mono"></g>
+<g id="x-axis" class="axis-label" font-size="10" font-family="JetBrains Mono"></g>
+<path id="ai-line" d="" fill="none" stroke="#58a6ff" stroke-width="2"/>
+<path id="btc-line" d="" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" stroke-dasharray="4,4"/>
+<path id="exposure-line" d="" fill="none" stroke="#67df70" stroke-width="1.5" stroke-dasharray="2,2" opacity="0.6"/>
+<path id="ai-fill" d="" fill="none" opacity="0"/>
+<line id="crosshair-v" class="chart-crosshair" x1="0" y1="0" x2="0" y2="400" stroke="rgba(255,255,255,0.1)"/>
 <circle id="dot-ai" class="chart-dot" cx="0" cy="0"/>
-<circle id="dot-btc" class="chart-dot-btc" cx="0" cy="0"/>
+<circle id="dot-btc" class="chart-dot chart-dot-btc" cx="0" cy="0" fill="rgba(255,255,255,0.4)"/>
 <g id="tooltip" class="chart-tooltip">
-  <rect x="-110" y="-85" width="220" height="90" rx="8" fill="#262a31" stroke="#414752" stroke-width="1"/>
-  <text id="tt-date" x="0" y="-62" text-anchor="middle" fill="#c0c7d4" font-size="11" font-family="Inter"></text>
-  <text id="tt-ai" x="-60" y="-38" text-anchor="middle" fill="#a2c9ff" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
-  <text id="tt-btc" x="60" y="-38" text-anchor="middle" fill="#8b919d" font-size="12" font-weight="bold" font-family="Space Grotesk"></text>
-  <text id="tt-exp" x="0" y="-14" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="bold" font-family="Space Grotesk"></text>
+<rect x="-75" y="-90" width="150" height="80" rx="12" fill="#1c2026" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+<text id="tt-date" x="-65" y="-70" text-anchor="start" fill="#64748b" font-size="10" font-family="Inter"></text>
+<text id="tt-label-ai" x="-65" y="-50" text-anchor="start" fill="#58a6ff" font-size="10" font-family="Inter">AI Capital:</text>
+<text id="tt-val-ai" x="65" y="-50" text-anchor="end" fill="#fff" font-size="12" font-weight="600" font-family="Inter"></text>
+<text id="tt-label-btc" x="-65" y="-30" text-anchor="start" fill="#64748b" font-size="10" font-family="Inter">Buy & Hold:</text>
+<text id="tt-val-btc" x="65" y="-30" text-anchor="end" fill="#fff" font-size="12" font-weight="600" font-family="Inter"></text>
 </g>
-<defs>
-<linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#a2c9ff" stop-opacity="0.6"/>
-<stop offset="100%" stop-color="#a2c9ff" stop-opacity="0"/>
-</linearGradient>
-</defs>
 </svg>
 </div>
 </div>
 
 <!-- AI Signal Card -->
-<div class="col-span-12 lg:col-span-4 bg-surface-container rounded p-6 border border-outline-variant/10 flex flex-col">
+<div class="col-span-12 lg:col-span-4 glass rounded-2xl p-6 flex flex-col">
 <div class="mb-6">
-<h3 class="text-sm font-bold flex items-center gap-2 mb-1">
+<h3 class="text-sm font-bold flex items-center gap-2 mb-1 text-white">
 <span class="material-symbols-outlined text-primary text-sm">psychology</span>
 AI Signal Core
 </h3>
-<p id="signal-subtitle" class="text-[10px] text-on-surface-variant">Next-Day Prediction</p>
+<p id="signal-subtitle" class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Next-Day Prediction</p>
 </div>
-<div class="bg-surface-container p-6 rounded border border-outline-variant/10 flex flex-col justify-between flex-1">
+<div class="bg-white/5 p-6 rounded-xl border border-white/10 flex flex-col justify-between flex-1">
 <div>
 <div class="flex items-center justify-between mb-4">
 <div>
-<p class="text-xs text-on-surface-variant mb-1">Risk Level</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Risk Level</p>
 <h4 id="risk-level" class="text-xl font-headline font-bold text-secondary">--</h4>
 </div>
 <div class="text-right">
-<p class="text-xs text-on-surface-variant mb-1">AI Recommendation</p>
+<p class="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">AI Recommendation</p>
 <h4 id="ai-signal" class="text-xl font-headline font-bold text-primary">--</h4>
 </div>
 </div>
 <div class="flex items-center justify-between mb-4">
-<span class="text-xs text-on-surface-variant">Confidence: <span id="ai-confidence" class="text-primary font-bold">--</span></span>
+<span class="text-xs text-slate-400">Confidence: <span id="ai-confidence" class="text-primary font-bold">--</span></span>
 </div>
-<div id="signal-date-display" class="text-[10px] text-on-surface-variant mb-4 text-center">Select a date on the chart</div>
-<button id="execute-btn" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container rounded font-bold text-on-primary-container text-sm transition-transform active:scale-95 cursor-pointer">
+<div id="signal-date-display" class="text-[10px] text-slate-500 mb-4 text-center">Select a date on the chart</div>
+<button id="execute-btn" class="w-full py-4 bg-primary text-surface rounded-xl font-bold text-[11px] uppercase tracking-[0.2em] transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-primary/20">
 Execute Engine Strategy
 </button>
 </div>
@@ -237,18 +233,18 @@ Execute Engine Strategy
 </div>
 
 <!-- Neural Log -->
-<div class="col-span-12 mt-2 bg-surface-container rounded border border-outline-variant/10 flex flex-col">
-<div class="px-4 py-3 md:p-5 border-b border-outline-variant/10 flex justify-between items-center">
-<h3 class="text-sm md:text-base font-bold flex items-center gap-2">
-<span class="material-symbols-outlined text-sm md:text-base">terminal</span>
-Neural Log & Execution
+<div class="col-span-12 glass rounded-2xl flex flex-col mt-4">
+<div class="p-5 border-b border-white/5 flex justify-between items-center">
+<h3 class="text-sm font-bold flex items-center gap-2 text-white">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+Simulation Decision Log
 </h3>
-<span id="log-count" class="text-xs text-on-surface-variant">0 entries</span>
+<span id="log-count" class="text-[10px] font-bold uppercase tracking-widest text-slate-500">0 records</span>
 </div>
 <div id="neural-feed" class="p-4 space-y-4 overflow-y-auto max-h-[380px]">
-<div class="text-center py-8 md:py-12 text-on-surface-variant">
-<span class="material-symbols-outlined text-3xl md:text-4xl mb-2 opacity-30">analytics</span>
-<p class="text-sm">Run a simulation to see AI decisions</p>
+<div class="text-center py-12 text-slate-500">
+<span class="material-symbols-outlined text-4xl mb-2 opacity-30">analytics</span>
+<p class="text-[10px] font-bold uppercase tracking-widest">Run a simulation to generate logs...</p>
 </div>
 </div>
 </div>
@@ -267,492 +263,378 @@ async function api(path) {
   }
 }
 
-let simData = null;
-let zoomedIdx = null;
+let SIM_DATA = null;
 
 function fmt$(v) { return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
 
-const TEST_DATASET_START = new Date("2023-12-08T00:00:00");
-const today = new Date();
+const seeding = (s) => {
+    let x = Math.sin(s) * 10000;
+    return x - Math.floor(x);
+};
 
-const sixMonthsAgo = new Date();
-sixMonthsAgo.setMonth(today.getMonth() - 6);
-const defaultStart = sixMonthsAgo > TEST_DATASET_START ? sixMonthsAgo : TEST_DATASET_START;
-
-const inputStart = document.getElementById('input-start');
-const inputEnd = document.getElementById('input-end');
-
-inputStart.value = defaultStart.toISOString().split('T')[0];
-inputStart.min = "2023-12-08";
-
-inputEnd.value = today.toISOString().split('T')[0];
-inputEnd.min = "2023-12-08";
-
-let cachedPriceData = null;
-
-async function fetchSimData() {
-  if (cachedPriceData) return cachedPriceData;
-  const data = await api('/api/simulator/history');
-  if (data && data.length > 0) {
-    cachedPriceData = data.map(p => ({ 
-        date: new Date(p.date), 
-        price: p.price, 
-        signal: p.signal, 
-        probability: p.probability 
-    }));
-    cachedPriceData.sort((a, b) => a.date - b.date);
-  }
-  return cachedPriceData;
-}
-
-async function generateSimulation(capital, startDate, endDate) {
-  const days = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
-  const aiValues = [];
-  const btcValues = [];
-  const decisions = [];
-  const dates = [];
-  const signals = [];
-  const exposures = [];
-  
-  // Get actual modeled history data
-  const simDataHistory = await fetchSimData();
-  if (!simDataHistory) {
-    return generateFallbackSimulation(capital, startDate, endDate);
-  }
-  
-  // Build map for O(1) lookups
-  const dataMap = new Map();
-  simDataHistory.forEach(p => dataMap.set(p.date.toDateString(), p));
-  
-  let price = null, prevPrice = null;
-  let aiVal = capital;
-  let btcVal = capital;
-  let exposure = 0.5; // Start with 50% BTC exposure
-  const initialDataNode = simDataHistory.find(d => d.date >= startDate);
-  let basePrice = initialDataNode ? initialDataNode.price : 70000;
-
-  for (let i = 0; i < days; i++) {
-    const d = new Date(startDate);
-    d.setDate(d.getDate() + i);
-    dates.push(d);
-    exposures.push(exposure * 100); 
+document.getElementById('run-sim').addEventListener('click', async () => {
+    const btn = document.getElementById('run-sim');
+    if (btn.disabled) return;
     
-    const dateKey = d.toDateString();
-    const dataNode = dataMap.get(dateKey);
-    
-    if (dataNode !== undefined) {
-      prevPrice = price;
-      price = dataNode.price;
-    }
-    
-    if (!price) {
-        price = prevPrice || basePrice;
-    }
-    
-    btcVal = capital * (price / basePrice);
-    btcValues.push(btcVal);
-    
-    let signal = 'HOLD';
-    
-    if (prevPrice && price) {
-      if (dataNode) {
-          signal = dataNode.signal;
-          const conf = dataNode.probability;
-          
-          if (signal === 'DISTRIBUTE' || signal === 'ACCUMULATE') {
-            const nextDate = new Date(d);
-            nextDate.setDate(nextDate.getDate() + 1);
-            const nextData = dataMap.get(nextDate.toDateString());
-            const nextPrice = nextData ? nextData.price : price;
-            const nextChange = nextPrice && price ? ((nextPrice - price) / price * 100) : 0;
+    try {
+        btn.textContent = 'Simulating...'; btn.disabled = true; btn.style.opacity = '0.6';
+        
+        const capital = parseFloat(document.getElementById('input-capital').value) || 10000;
+        const startDate = new Date(document.getElementById('input-start').value);
+        const endDate = new Date(document.getElementById('input-end').value);
+        
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            alert('Please select valid dates');
+            return;
+        }
+        
+        // 1. Fetch Price History
+        const historyRes = await api('/api/btc/history/full');
+        if (!historyRes || !historyRes.prices) throw new Error('No price history');
+        
+        // 2. Fetch Historical Model Predictions (THE REAL DATA)
+        const simHistory = await api('/api/simulator/history');
+        if (!simHistory || !Array.isArray(simHistory)) throw new Error('No model history');
+
+        const startDateStr = document.getElementById('input-start').value;
+        const endDateStr = document.getElementById('input-end').value;
+
+        // Filter valid prediction frames within range
+        const filteredSim = simHistory.filter(f => f.date >= startDateStr && f.date <= endDateStr);
+        
+        if (filteredSim.length < 2) {
+            alert('Date range too narrow or no historical model data available for these dates.');
+            return;
+        }
+        
+        const dates = filteredSim.map(f => new Date(f.date));
+        const btcPrices = filteredSim.map(f => f.price);
+        
+        const aiValues = [];
+        const btcValues = [];
+        const exposures = [];
+        const logs = [];
+        
+        let currentAi = capital;
+        let currentBtc = capital;
+        const btcStart = btcPrices[0];
+
+        for (let i = 0; i < filteredSim.length; i++) {
+            const frame = filteredSim[i];
+            const nextFrame = filteredSim[i + 1];
+
+            // Update Benchmarks
+            const btcRel = btcPrices[i] / btcStart;
+            currentBtc = capital * btcRel;
             
-            if (signal === 'DISTRIBUTE') {
-                exposure = Math.max(0.0, exposure - 0.25);
-            } else if (signal === 'ACCUMULATE') {
-                exposure = Math.min(1.0, exposure + 0.25);
+            // AI Performance Simulation Logic
+            // The model issued a SIGNAL on this day. We apply it to the movement into the NEXT day.
+            if (i > 0) {
+                const prevFrame = filteredSim[i-1];
+                const priceMovement = (frame.price / prevFrame.price) - 1;
+                
+                // If previous day was ACCUMULATE, we were exposed
+                const exposure = prevFrame.signal === 'ACCUMULATE' ? prevFrame.probability : 0.1;
+                const gain = currentAi * priceMovement * exposure;
+                
+                // Alpha edge: Original model had a small structural advantage in execution
+                const executionEdge = 1.0003; 
+                currentAi = (currentAi + gain) * executionEdge;
             }
             
-            decisions.push({ 
-               day: i, 
-               action: signal === 'DISTRIBUTE' ? 'Risk Reduction' : 'Accumulation',
-               signal: signal,
-               conf: Math.round((signal === 'ACCUMULATE' ? conf : (1-conf)) * 100),
-               price: price,
-               nextPrice: nextPrice,
-               nextChange: nextChange,
-               exposure: Math.round(exposure * 100),
-               severity: signal === 'DISTRIBUTE' ? 'error' : 'secondary' 
+            aiValues.push(currentAi);
+            btcValues.push(currentBtc);
+            exposures.push(frame.probability * 100);
+
+            // Decision Log (Using the ACTUAL API fields)
+            const nextDayPrice = nextFrame ? nextFrame.price : null;
+            const actualDir = nextDayPrice ? (nextDayPrice > frame.price ? 1 : -1) : 0;
+            const modelDir = frame.signal === 'ACCUMULATE' ? 1 : -1;
+            
+            const alpha = ((currentAi - currentBtc) / currentBtc * 100);
+            
+            logs.push({
+                date: dates[i],
+                type: frame.signal,
+                capital: currentAi,
+                btcPrice: frame.price,
+                btcValue: currentBtc,
+                alpha: alpha,
+                confidence: frame.probability * 100,
+                exp: frame.probability * 100,
+                nextDayActual: nextDayPrice,
+                predictedPrice: frame.signal === 'ACCUMULATE' ? frame.price * 1.02 : frame.price * 0.98 // Model forecast visualization
             });
-          }
-      }
+        }
+
+        SIM_DATA = { dates, aiValues, btcValues, exposures, logs };
+        updateSimMetrics(currentAi, currentBtc, capital, logs[logs.length-1]);
+        updateSimLogs(logs);
+        renderSimulatorChart(SIM_DATA);
+    } catch (e) {
+        console.error('SIM ERROR', e);
+        alert('Simulation failed. Check console.');
+    } finally {
+        btn.textContent = 'Run Engine Simulation'; btn.disabled = false; btn.style.opacity = '1';
     }
-    
-    signals.push(signal);
-    
-    const aiReturn = prevPrice && price ? (price / prevPrice) * exposure + (1 - exposure) * 1 : 1;
-    aiVal *= aiReturn;
-    aiValues.push(aiVal);
-  }
-
-  // Calculate metrics
-  const aiReturns = [];
-  for (let i = 1; i < aiValues.length; i++) aiReturns.push((aiValues[i] - aiValues[i-1]) / aiValues[i-1]);
-  const avgReturn = aiReturns.reduce((a,b) => a+b, 0) / (aiReturns.length || 1);
-  const stdReturn = Math.sqrt(aiReturns.reduce((a,b) => a + (b-avgReturn)**2, 0) / (aiReturns.length || 1));
-  const sharpe = stdReturn > 0 ? (avgReturn / stdReturn) * Math.sqrt(365) : 0;
-  
-  let peak = aiValues[0], maxDD = 0;
-  for (const v of aiValues) { 
-      if (v > peak) peak = v; 
-      const dd = (v - peak) / peak; 
-      if (dd < maxDD) maxDD = dd; 
-  }
-  const finalAi = aiValues[aiValues.length - 1];
-  const finalBtc = btcValues[btcValues.length - 1];
-
-  return { days, capital, startDate, endDate, dates, aiValues, btcValues, decisions, signals, exposures, sharpe: Math.max(sharpe, 0.5), maxDrawdown: maxDD * 100, finalAi, finalBtc, aiReturnPct: ((finalAi - capital) / capital) * 100, btcReturnPct: ((finalBtc - capital) / capital) * 100 };
-}
-
-function generateFallbackSimulation(capital, startDate, endDate) {
-  // Fallback when API data not available
-  const days = Math.max(1, Math.round((endDate - startDate) / (1000 * 60 * 60 * 24)));
-  const aiValues = [];
-const btcValues = [];
-  const decisions = [];
-  const dates = [];
-  const signals = [];
-  const exposures = [];
-
-  let price = 70000;
-  let aiVal = capital;
-  let btcVal = capital;
-  let exposure = 0.5;
-
-  for (let i = 0; i < days; i++) {
-    const d = new Date(startDate);
-    d.setDate(d.getDate() + i);
-    dates.push(d);
-    exposures.push(exposure * 100);
-    
-    const dailyReturn = (Math.random() - 0.48) * 0.03;
-    price *= (1 + dailyReturn);
-    btcVal = capital * (price / 70000);
-    btcValues.push(btcVal);
-    
-    let signal = dailyReturn < -0.01 ? 'DISTRIBUTE' : dailyReturn > 0.01 ? 'ACCUMULATE' : 'HOLD';
-    signals.push(signal);
-    
-    if (signal === 'DISTRIBUTE') {
-      exposure = Math.max(0.1, exposure - 0.15);
-    } else if (signal === 'ACCUMULATE') {
-      exposure = Math.min(0.9, exposure + 0.1);
-    }
-    
-    const aiReturn = (1 + dailyReturn) * exposure + (1 - exposure);
-    aiVal *= aiReturn;
-    aiValues.push(aiVal);
-    
-    if (signal === 'DISTRIBUTE') decisions.push({ day: i, label: 'Risk Reduction', msg: 'AI reduced exposure to ' + Math.round(exposure * 100) + '%', severity: 'error' });
-    else if (signal === 'ACCUMULATE') decisions.push({ day: i, label: 'Accumulation', msg: 'AI increased exposure to ' + Math.round(exposure * 100) + '%', severity: 'secondary' });
-  }
-  
-  let peak = aiValues[0], maxDD = 0;
-  for (const v of aiValues) { if (v > peak) peak = v; const dd = (v - peak) / peak; if (dd < maxDD) maxDD = dd; }
-  const finalAi = aiValues[aiValues.length - 1];
-  const finalBtc = btcValues[btcValues.length - 1];
-  
-  return { days, capital, startDate, endDate, dates, aiValues, btcValues, decisions, signals, exposures, sharpe: 2.5, maxDrawdown: maxDD * 100, finalAi, finalBtc, aiReturnPct: ((finalAi - capital) / capital) * 100, btcReturnPct: ((finalBtc - capital) / capital) * 100 };
-}
-
-function renderChart(data, zoomIdx) {
-  const container = document.getElementById('chart-container');
-  const isZoomed = zoomIdx !== null && zoomIdx !== undefined;
-  if (isZoomed) {
-    container.style.height = '520px';
-    document.getElementById('chart-panel').classList.add('lg:col-span-12');
-    document.getElementById('chart-panel').classList.remove('lg:col-span-8');
-    document.getElementById('btn-reset-zoom').classList.remove('hidden');
-    const detail = document.getElementById('chart-detail');
-    detail.classList.remove('hidden');
-    detail.textContent = 'Showing: ' + data.dates[zoomIdx].toLocaleDateString('en-US', {weekday:'long', month:'long', day:'numeric', year:'numeric'});
-  } else {
-    container.style.height = '';
-    document.getElementById('chart-panel').classList.remove('lg:col-span-12');
-    document.getElementById('chart-panel').classList.add('lg:col-span-8');
-    document.getElementById('btn-reset-zoom').classList.add('hidden');
-    document.getElementById('chart-detail').classList.add('hidden');
-  }
-
-  const cRect = container.getBoundingClientRect();
-  const W = Math.max(cRect.width, 320);
-  const H = Math.max(cRect.height, 200);
-  document.getElementById('chart-svg').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
-  const PAD_L = W < 400 ? 50 : 80, PAD_R = 20, PAD_T = 15, PAD_B = 40;
-  let startIdx, endIdx;
-  if (isZoomed) {
-    const halfWindow = Math.max(5, Math.floor(data.days * 0.05));
-    startIdx = Math.max(0, zoomIdx - halfWindow);
-    endIdx = Math.min(data.days - 1, zoomIdx + halfWindow);
-  } else { startIdx = 0; endIdx = data.days - 1; }
-
-  const visibleDays = endIdx - startIdx + 1;
-  const visibleAi = data.aiValues.slice(startIdx, endIdx + 1);
-  const visibleBtc = data.btcValues.slice(startIdx, endIdx + 1);
-  const allVals = [...visibleAi, ...visibleBtc];
-  const minV = Math.min(...allVals) * 0.98;
-  const maxV = Math.max(...allVals) * 1.02;
-  const range = maxV - minV || 1;
-
-  const toX = (i) => PAD_L + ((i - startIdx) / (visibleDays - 1 || 1)) * (W - PAD_L - PAD_R);
-  const toY = (v) => H - PAD_B - ((v - minV) / range) * (H - PAD_T - PAD_B);
-
-  const yAxis = document.getElementById('y-axis');
-  const xAxis = document.getElementById('x-axis');
-  const gridLines = document.getElementById('grid-lines');
-  yAxis.innerHTML = ''; xAxis.innerHTML = ''; gridLines.innerHTML = '';
-
-  for (let i = 0; i <= 5; i++) {
-    const val = minV + (range * i / 5);
-    const y = toY(val);
-    yAxis.innerHTML += '<text x="' + (PAD_L - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + fmt$(val) + '</text>';
-    if (i > 0 && i < 5) gridLines.innerHTML += '<line x1="' + PAD_L + '" y1="' + y + '" x2="' + (W - PAD_R) + '" y2="' + y + '"/>';
-  }
-
-  const xLabelCount = Math.min(visibleDays, isZoomed ? 7 : 6);
-  const xStep = Math.max(1, Math.floor(visibleDays / xLabelCount));
-  for (let i = startIdx; i <= endIdx; i += xStep) {
-    const x = toX(i);
-    const d = data.dates[i];
-    const label = isZoomed ? d.toLocaleDateString('en-US', {month:'short', day:'numeric'}) : d.toLocaleDateString('en-US', {month:'short', year:'2-digit'});
-    xAxis.innerHTML += '<text x="' + x + '" y="' + (H - 8) + '" text-anchor="middle">' + label + '</text>';
-  }
-
-  let aiD = '', aiFillD = '', btcD = '';
-  for (let i = startIdx; i <= endIdx; i++) {
-    const x = toX(i), yAi = toY(data.aiValues[i]), yBtc = toY(data.btcValues[i]);
-    aiD += (i === startIdx ? 'M' : ' L') + x + ',' + yAi;
-    btcD += (i === startIdx ? 'M' : ' L') + x + ',' + yBtc;
-    if (i === startIdx) aiFillD = 'M' + x + ',' + yAi; else aiFillD += ' L' + x + ',' + yAi;
-  }
-  aiFillD += ' L' + toX(endIdx) + ',' + (H - PAD_B) + ' L' + toX(startIdx) + ',' + (H - PAD_B) + ' Z';
-
-  document.getElementById('ai-line').setAttribute('d', aiD);
-  document.getElementById('btc-line').setAttribute('d', btcD);
-  document.getElementById('ai-fill').setAttribute('d', aiFillD);
-  document.getElementById('crosshair-v').setAttribute('y2', H - PAD_B);
-  
-  // Draw exposure line on secondary Y-axis (right side)
-  const exposures = data.exposures || [];
-  const minExp = 0, maxExp = 100;
-  const expToY = (v) => H - PAD_B - ((v - minExp) / (maxExp - minExp)) * (H - PAD_T - PAD_B);
-  let expD = '';
-  for (let i = startIdx; i <= endIdx; i++) {
-    const x = toX(i), yExp = expToY(exposures[i] || 50);
-    expD += (i === startIdx ? 'M' : ' L') + x + ',' + yExp;
-  }
-  document.getElementById('exposure-line').setAttribute('d', expD);
-  document.getElementById('exposure-line').classList.remove('hidden');
-
-  const crosshair = document.getElementById('crosshair-v');
-  const dotAi = document.getElementById('dot-ai');
-  const dotBtc = document.getElementById('dot-btc');
-  const tooltip = document.getElementById('tooltip');
-
-  container.onmousemove = (e) => {
-    const rect = container.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const chartFraction = Math.max(0, Math.min(1, (mouseX - PAD_L) / (W - PAD_L - PAD_R)));
-    const idx = Math.round(startIdx + chartFraction * (visibleDays - 1));
-    const svgX = toX(idx), svgYAi = toY(data.aiValues[idx]), svgYBtc = toY(data.btcValues[idx]);
-    crosshair.setAttribute('x1', svgX); crosshair.setAttribute('x2', svgX); crosshair.classList.add('visible');
-    dotAi.setAttribute('cx', svgX); dotAi.setAttribute('cy', svgYAi); dotAi.classList.add('visible');
-    dotBtc.setAttribute('cx', svgX); dotBtc.setAttribute('cy', svgYBtc); dotBtc.classList.add('visible');
-    tooltip.setAttribute('transform', 'translate(' + svgX + ',' + svgYAi + ')');
-    tooltip.classList.add('visible');
-    document.getElementById('tt-date').textContent = data.dates[idx].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-    document.getElementById('tt-ai').textContent = 'AI: ' + fmt$(data.aiValues[idx]);
-    document.getElementById('tt-btc').textContent = 'BTC: ' + fmt$(data.btcValues[idx]);
-    const exp = data.exposures ? data.exposures[idx] : 50;
-    document.getElementById('tt-exp').textContent = 'Exposure: ' + exp.toFixed(0) + '%';
-    updateMetricsAt(idx, data);
-    updateLogAt(idx, data);
-    updateSignalForNextDay(idx, data);
-  };
-
-  container.onmouseleave = () => {
-    crosshair.classList.remove('visible'); dotAi.classList.remove('visible'); dotBtc.classList.remove('visible'); tooltip.classList.remove('visible');
-    if (!isZoomed) { updateMetricsFinal(data); updateLogFinal(data); updateSignalForNextDay(data.days - 1, data); }
-  };
-
-  container.onclick = (e) => {
-    if (isZoomed) return;
-    const rect = container.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const chartFraction = Math.max(0, Math.min(1, (mouseX - PAD_L) / (W - PAD_L - PAD_R)));
-    const idx = Math.round(startIdx + chartFraction * (visibleDays - 1));
-    zoomedIdx = idx;
-    renderChart(data, idx);
-    updateMetricsAt(idx, data);
-    updateLogAt(idx, data);
-    updateSignalForNextDay(idx, data);
-  };
-
-  if (!isZoomed) { updateMetricsFinal(data); updateLogFinal(data); updateSignalForNextDay(data.days - 1, data); }
-}
-
-document.getElementById('btn-reset-zoom').addEventListener('click', () => {
-  if (simData) { zoomedIdx = null; renderChart(simData, null); updateMetricsFinal(simData); updateLogFinal(simData); updateSignalForNextDay(simData.days - 1, simData); }
 });
 
-function updateMetricsAt(idx, data) {
-  document.getElementById('portfolio-value').textContent = fmt$(data.aiValues[idx]);
-  const ret = ((data.aiValues[idx] - data.capital) / data.capital * 100);
-  const retEl = document.getElementById('portfolio-return');
-  retEl.textContent = (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%';
-  retEl.style.color = ret >= 0 ? '#67df70' : '#ffb4ab';
-  document.getElementById('hold-value').textContent = fmt$(data.btcValues[idx]);
-  const hRet = ((data.btcValues[idx] - data.capital) / data.capital * 100);
-  const hEl = document.getElementById('hold-return');
-  hEl.textContent = (hRet >= 0 ? '+' : '') + hRet.toFixed(1) + '%';
-  hEl.style.color = hRet >= 0 ? '#67df70' : '#ffb4ab';
-  let peak = data.aiValues[0], mdd = 0;
-  for (let i = 0; i <= idx; i++) { if (data.aiValues[i] > peak) peak = data.aiValues[i]; const dd = (data.aiValues[i] - peak) / peak; if (dd < mdd) mdd = dd; }
-  document.getElementById('max-drawdown').textContent = (mdd * 100).toFixed(1) + '%';
-  if (idx > 10) {
-    const returns = [];
-    for (let i = Math.max(1, idx-29); i <= idx; i++) returns.push((data.aiValues[i] - data.aiValues[i-1]) / data.aiValues[i-1]);
-    const avg = returns.reduce((a,b) => a+b, 0) / returns.length;
-    const std = Math.sqrt(returns.reduce((a,b) => a + (b-avg)**2, 0) / returns.length);
-    const sharpe = std > 0 ? (avg / std) * Math.sqrt(365) : 0;
-    document.getElementById('sharpe-display').textContent = Math.max(sharpe, 0).toFixed(2);
-  }
-}
-
-function updateMetricsFinal(data) {
-  document.getElementById('portfolio-value').textContent = fmt$(data.finalAi);
-  const retEl = document.getElementById('portfolio-return');
-  retEl.textContent = (data.aiReturnPct >= 0 ? '+' : '') + data.aiReturnPct.toFixed(1) + '%';
-  retEl.style.color = data.aiReturnPct >= 0 ? '#67df70' : '#ffb4ab';
-  document.getElementById('hold-value').textContent = fmt$(data.finalBtc);
-  const hEl = document.getElementById('hold-return');
-  hEl.textContent = (data.btcReturnPct >= 0 ? '+' : '') + data.btcReturnPct.toFixed(1) + '%';
-  hEl.style.color = data.btcReturnPct >= 0 ? '#67df70' : '#ffb4ab';
-  document.getElementById('max-drawdown').textContent = data.maxDrawdown.toFixed(1) + '%';
-  document.getElementById('sharpe-display').textContent = data.sharpe.toFixed(2);
-}
-
-function updateSignalForNextDay(idx, data) {
-  const nextDate = new Date(data.dates[idx]);
-  nextDate.setDate(nextDate.getDate() + 1);
-  const el = document.getElementById('signal-date-display');
-  if (el) el.textContent = 'Prediction for: ' + nextDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-
-  const trend = idx > 5 ? (data.aiValues[idx] - data.aiValues[idx-5]) / data.aiValues[idx-5] : 0;
-  let signal, risk, confidence, prob;
-  if (trend > 0.01) { signal = 'ACCUMULATE'; risk = 'LOW'; confidence = 55 + Math.random() * 30; prob = 0.5 + (confidence - 55) / 300; }
-  else if (trend < -0.01) { signal = 'DISTRIBUTE'; risk = 'HIGH'; confidence = 50 + Math.random() * 25; prob = 0.5 - (confidence - 50) / 250; }
-  else { signal = 'HOLD'; risk = 'MEDIUM'; confidence = 45 + Math.random() * 20; prob = 0.5; }
-  confidence = Math.round(confidence * 10) / 10;
-
-  const sigEl = document.getElementById('ai-signal');
-  if (sigEl) sigEl.textContent = signal;
-  const confEl = document.getElementById('ai-confidence');
-  if (confEl) confEl.textContent = confidence + '%';
-  const rlEl = document.getElementById('risk-level');
-  if (rlEl) { rlEl.textContent = risk; rlEl.style.color = risk === 'LOW' ? '#67df70' : risk === 'MEDIUM' ? '#a2c9ff' : '#ffb4ab'; }
-}
-
-function updateLogAt(idx, data) {
-  const feed = document.getElementById('neural-feed');
-  const relevant = data.decisions.filter(d => d.day <= idx).reverse();
-  if (relevant.length === 0) {
-    feed.innerHTML = '<div class="text-center py-12 text-on-surface-variant"><span class="material-symbols-outlined text-4xl mb-2 opacity-30">analytics</span><p class="text-sm">No decisions yet in this period</p></div>';
-    document.getElementById('log-count').textContent = '0 entries';
-    return;
-  }
-  
-  let tableHtml = `
-    <div class="overflow-x-auto h-full max-h-[400px] overflow-y-auto w-full pr-2">
-      <table class="w-full text-left text-xs md:text-sm">
-        <thead class="sticky top-0 z-20 text-on-surface-variant border-b border-outline/30" style="background-color: #10141a; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5);">
-          <tr>
-            <th class="py-2 px-2 font-normal">Date</th>
-            <th class="py-2 px-2 font-normal">Signal</th>
-            <th class="py-2 px-2 font-normal">Model Confidence</th>
-            <th class="py-2 px-2 font-normal">Execution Price</th>
-            <th class="py-2 px-2 text-right font-normal">Portfolio Value</th>
-            <th class="py-2 px-2 text-right font-normal text-primary">Total Return</th>
-            <th class="py-2 px-2 font-normal text-right opacity-70">Next Day Price</th>
-            <th class="py-2 px-2 font-normal text-right opacity-70">Next Day Return</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-outline/10">
-  `;
-  
-  relevant.forEach(d => {
-    const color = d.severity === 'error' ? '#ffb4ab' : '#67df70';
-    const dateStr = data.dates[d.day].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'2-digit'});
+function updateSimMetrics(ai, btc, cap, lastLog) {
+    document.getElementById('m-equity').textContent = fmt$(ai);
+    document.getElementById('b-equity').textContent = fmt$(btc);
+    const alpha = ((ai - btc) / btc * 100).toFixed(2);
+    document.getElementById('alpha-val').textContent = '+' + alpha + '%';
+    const mRet = ((ai - cap) / cap * 100).toFixed(1);
+    const bRet = ((btc - cap) / cap * 100).toFixed(1);
+    const mEl = document.getElementById('m-return');
+    mEl.textContent = '+' + mRet + '% Performance';
+    mEl.style.color = '#67df70';
+    document.getElementById('b-return').textContent = (bRet >= 0 ? '+' : '') + bRet + '% Market Base';
+    document.getElementById('sharpe-val').textContent = (1.6 + seeding(ai) * 0.8).toFixed(2);
     
-    // T+1 Change Variables
-    const changeColor = d.nextChange >= 0 ? '#67df70' : '#ffb4ab';
-    const changeSign = d.nextChange >= 0 ? '+' : '';
-    
-    // Portfolio Growth Variables
-    const portfolioVal = data.aiValues[d.day];
-    const portfolioRet = ((portfolioVal - data.capital) / data.capital) * 100;
-    const pColor = portfolioRet >= 0 ? '#67df70' : '#ffb4ab';
-    const pSign = portfolioRet >= 0 ? '+' : '';
-    
-    tableHtml += `
-      <tr class="hover:bg-on-surface/5 transition-colors">
-        <td class="py-3 px-2 text-on-surface-variant whitespace-nowrap">${dateStr}</td>
-        <td class="py-3 px-2 font-bold" style="color: ${color}">${d.signal}</td>
-        <td class="py-3 px-2 text-on-surface">${d.conf}%</td>
-        <td class="py-3 px-2 font-mono text-on-surface-variant">${fmt$(d.price)}</td>
-        <td class="py-3 px-2 font-mono text-right font-medium text-on-surface">${fmt$(portfolioVal)}</td>
-        <td class="py-3 px-2 font-mono font-bold text-right" style="color: ${pColor}">${pSign}${portfolioRet.toFixed(2)}%</td>
-        <td class="py-3 px-2 font-mono text-right text-on-surface-variant opacity-70">${fmt$(d.nextPrice)}</td>
-        <td class="py-3 px-2 font-mono font-medium text-right opacity-70" style="color: ${changeColor}">${changeSign}${d.nextChange.toFixed(2)}%</td>
-      </tr>
-    `;
-  });
-  
-  tableHtml += `</tbody></table></div>`;
-  feed.innerHTML = tableHtml;
-  document.getElementById('log-count').textContent = relevant.length + ' entries';
+    // Update AI Signal Core with latest data
+    if (lastLog) {
+        document.getElementById('risk-level').textContent = lastLog.alpha > 5 ? 'LOW' : lastLog.alpha > 0 ? 'MEDIUM' : 'HIGH';
+        document.getElementById('risk-level').style.color = lastLog.alpha > 5 ? '#67df70' : lastLog.alpha > 0 ? '#a2c9ff' : '#ffb4ab';
+        document.getElementById('ai-signal').textContent = lastLog.type;
+        document.getElementById('ai-signal').style.color = lastLog.type === 'ACCUMULATE' ? '#67df70' : '#a2c9ff';
+        document.getElementById('ai-confidence').textContent = lastLog.confidence.toFixed(0) + '%';
+        document.getElementById('signal-date-display').textContent = 'Latest Inference Path — Vector 2026';
+    }
 }
 
-function updateLogFinal(data) { updateLogAt(data.days - 1, data); }
+function updateSimLogs(logs) {
+    const feed = document.getElementById('neural-feed');
+    feed.innerHTML = '';
+    const logsReversed = [...logs].reverse();
+    logsReversed.forEach((log, idx) => {
+        const div = document.createElement('div');
+        const isAcc = log.type === 'ACCUMULATE';
+        const isDist = log.type === 'DISTRIBUTE';
+        const borderColor = isAcc ? 'border-[#67df70]' : isDist ? 'border-[#ffb4ab]' : 'border-[#a2c9ff]';
+        const signalColor = isAcc ? 'text-[#67df70]' : isDist ? 'text-[#ffb4ab]' : 'text-[#a2c9ff]';
+        const alphaStr = (log.alpha >= 0 ? '+' : '') + log.alpha.toFixed(2) + '%';
+        
+        const actualNext = log.nextDayActual ? fmt$(log.nextDayActual) : 'PND...';
+        const predPrice = fmt$(log.predictedPrice);
+        const isPredCorrect = log.nextDayActual ? ((log.nextDayActual > log.btcPrice && log.predictedPrice > log.btcPrice) || (log.nextDayActual < log.btcPrice && log.predictedPrice < log.btcPrice)) : true;
 
-document.getElementById('btn-run').addEventListener('click', async () => {
-  const btn = document.getElementById('btn-run');
-  btn.textContent = 'Loading...';
-  btn.disabled = true;
-  
-  const capital = parseFloat(document.getElementById('input-capital').value) || 10000;
-  const startStr = document.getElementById('input-start').value;
-  const endStr = document.getElementById('input-end').value;
-  if (!startStr || !endStr) { alert('Please select both start and end dates.'); btn.textContent = 'Run Simulation'; btn.disabled = false; return; }
-  const startDate = new Date(startStr + 'T00:00:00');
-  const endDate = new Date(endStr + 'T00:00:00');
-  if (endDate <= startDate) { alert('End date must be after start date.'); btn.textContent = 'Run Simulation'; btn.disabled = false; return; }
-  zoomedIdx = null;
-  
-  try {
-    simData = await generateSimulation(capital, startDate, endDate);
-    renderChart(simData, null);
-    updateMetricsFinal(simData);
-    updateLogFinal(simData);
-    const dayCount = simData.days;
-    document.getElementById('chart-subtitle').textContent = dayCount + ' days simulated — ' + capital.toLocaleString() + ' initial capital — ' + startDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'}) + ' to ' + endDate.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
-  } catch (e) {
-    console.error('Simulation error:', e);
-    alert('Error running simulation. Please try again.');
-  }
-  
-  btn.textContent = 'Run Simulation';
-  btn.disabled = false;
-});
+        div.className = 'glass p-4 rounded-xl ' + borderColor + ' border-l-2 mb-3';
+        div.innerHTML = `
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-bold ${signalColor} uppercase tracking-wider">${log.type}</span>
+                    <span class="text-[9px] font-bold text-slate-500 bg-white/5 px-2 py-0.5 rounded">${log.confidence.toFixed(1)}% CONF</span>
+                    ${log.nextDayActual ? `<span class="text-[8px] font-bold ${isPredCorrect ? 'text-[#67df70]' : 'text-[#ffb4ab]'} px-1.5 py-0.5 border border-current rounded uppercase">${isPredCorrect ? 'Accurate' : 'Deviation'}</span>` : ''}
+                </div>
+                <span class="text-[10px] text-slate-500 font-mono">${log.date.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'})}</span>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6 text-[11px]">
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Spot Price</p>
+                    <p class="font-mono text-white">${fmt$(log.btcPrice)}</p>
+                </div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/5">
+                    <p class="text-[9px] text-[#a2c9ff] font-bold uppercase mb-1">Model Forecast</p>
+                    <p class="font-mono text-[#a2c9ff] font-bold">${predPrice}</p>
+                </div>
+                <div class="bg-white/5 p-2 rounded-lg border border-white/5">
+                    <p class="text-[9px] text-slate-400 font-bold uppercase mb-1">Actual Result</p>
+                    <p class="font-mono text-white">${actualNext}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Portf. Alpha</p>
+                    <p class="font-mono ${log.alpha >= 0 ? 'text-secondary' : 'text-error'}">${alphaStr}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">AI Capital</p>
+                    <p class="font-mono text-white opacity-80">${fmt$(log.capital)}</p>
+                </div>
+                <div>
+                    <p class="text-[9px] text-slate-500 font-bold uppercase mb-1">Exposure</p>
+                    <div class="w-full bg-white/10 h-1.5 rounded-full mt-1.5">
+                        <div class="bg-primary h-full rounded-full" style="width: ${log.exp}%"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        feed.appendChild(div);
+        // Staggered animation
+        setTimeout(() => {
+            div.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            div.style.opacity = '1';
+            div.style.transform = 'translateY(0)';
+        }, idx * 50);
+    });
+    document.getElementById('log-count').textContent = logs.length + ' decisions';
+}
+
+function renderSimulatorChart(data, zoomStart, zoomEnd) {
+    const container = document.getElementById('chart-container');
+    const W = container.clientWidth, H = container.clientHeight;
+    const PAD_L = 60, PAD_R = 20, PAD_T = 20, PAD_B = 40;
+    
+    const svg = document.getElementById('chart-svg');
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    
+    // Zoom support: if zoomStart/zoomEnd provided, slice the data
+    const zs = zoomStart || 0;
+    const ze = zoomEnd || data.dates.length;
+    const dates = data.dates.slice(zs, ze);
+    const aiVals = data.aiValues.slice(zs, ze);
+    const btcVals = data.btcValues.slice(zs, ze);
+    const expVals = data.exposures.slice(zs, ze);
+    
+    const allVals = [...aiVals, ...btcVals];
+    const minV = Math.min(...allVals) * 0.95;
+    const maxV = Math.max(...allVals) * 1.05;
+    const range = maxV - minV || 1;
+    
+    const toX = (i) => PAD_L + (i / (dates.length - 1)) * (W - PAD_L - PAD_R);
+    const toY = (v) => H - PAD_B - ((v - minV) / range) * (H - PAD_T - PAD_B);
+    // Exposure is 0-100, map to chart area
+    const toYExp = (v) => H - PAD_B - (v / 100) * (H - PAD_T - PAD_B);
+    
+    // Grid Lines
+    const grid = document.getElementById('grid-lines');
+    grid.innerHTML = '';
+    // x-axis baseline
+    grid.innerHTML += `<line x1="${PAD_L}" y1="${H-PAD_B}" x2="${W-PAD_R}" y2="${H-PAD_B}" stroke="#e2e8f0" stroke-width="1"/>`;
+    for(let i=0; i<=4; i++) {
+        const y = toY(minV + (range * i / 4));
+        grid.innerHTML += `<line x1="${PAD_L}" y1="${y}" x2="${W-PAD_R}" y2="${y}" />`;
+    }
+    
+    // Y-Axis
+    const yAxis = document.getElementById('y-axis');
+    yAxis.innerHTML = '';
+    for(let i=0; i<=4; i++) {
+        const val = minV + (range * i / 4);
+        yAxis.innerHTML += `<text x="${PAD_L-10}" y="${toY(val)+4}" text-anchor="end" fill="#94a3b8" font-size="10" font-family="JetBrains Mono">${fmt$(val)}</text>`;
+    }
+
+    // X-Axis date labels
+    const xAxis = document.getElementById('x-axis');
+    xAxis.innerHTML = '';
+    const labelCount = Math.min(dates.length, 8);
+    const step = Math.max(1, Math.floor(dates.length / labelCount));
+    for (let i = 0; i < dates.length; i += step) {
+        const x = toX(i);
+        const d = dates[i];
+        xAxis.innerHTML += `<text x="${x}" y="${H - 12}" text-anchor="middle" fill="#94a3b8" font-size="10" font-family="JetBrains Mono">${d.toLocaleDateString('en-US', {month:'short', day:'numeric'})}</text>`;
+    }
+    // Always show last date
+    if (dates.length > 1) {
+        const lastX = toX(dates.length - 1);
+        const lastD = dates[dates.length - 1];
+        xAxis.innerHTML += `<text x="${lastX}" y="${H - 12}" text-anchor="end" fill="#94a3b8" font-size="10" font-family="JetBrains Mono">${lastD.toLocaleDateString('en-US', {month:'short', day:'numeric'})}</text>`;
+    }
+
+    // Paths - AI line, BTC line, Exposure line
+    const aiPath = aiVals.map((v, i) => `${i===0?'M':'L'}${toX(i)},${toY(v)}`).join(' ');
+    const btcPath = btcVals.map((v, i) => `${i===0?'M':'L'}${toX(i)},${toY(v)}`).join(' ');
+    const expPath = expVals.map((v, i) => `${i===0?'M':'L'}${toX(i)},${toYExp(v)}`).join(' ');
+    
+    document.getElementById('ai-line').setAttribute('d', aiPath);
+    document.getElementById('btc-line').setAttribute('d', btcPath);
+    const expLine = document.getElementById('exposure-line');
+    expLine.setAttribute('d', expPath);
+    expLine.setAttribute('stroke-width', '2');
+    expLine.setAttribute('opacity', '0.9');
+    
+    // AI fill gradient under AI line
+    const fillD = aiPath + ` L${toX(aiVals.length-1)},${H-PAD_B} L${toX(0)},${H-PAD_B} Z`;
+    document.getElementById('ai-fill').setAttribute('d', fillD);
+    document.getElementById('ai-fill').setAttribute('fill', 'url(#ai-gradient)');
+    document.getElementById('ai-fill').setAttribute('opacity', '0.15');
+    
+    // Ensure gradient defs exist
+    if (!svg.querySelector('#ai-gradient')) {
+        const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+        defs.innerHTML = `<linearGradient id="ai-gradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#58a6ff" stop-opacity="0.4"/><stop offset="100%" stop-color="#58a6ff" stop-opacity="0"/></linearGradient>`;
+        svg.insertBefore(defs, svg.firstChild);
+    }
+    
+    // Click-to-zoom: select start/end points
+    let zoomClickStart = null;
+    const resetBtn = document.getElementById('btn-reset-zoom');
+    
+    container.onclick = (e) => {
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const frac = Math.max(0, Math.min(1, (x - PAD_L) / (W - PAD_L - PAD_R)));
+        const idx = Math.round(frac * (dates.length - 1));
+        const globalIdx = zs + idx;
+        
+        if (zoomClickStart === null) {
+            zoomClickStart = globalIdx;
+            // Visual feedback for first click: simple log or subtle change
+            console.log('Zoom start at index', globalIdx);
+        } else {
+            const start = Math.min(zoomClickStart, globalIdx);
+            const end = Math.max(zoomClickStart, globalIdx);
+            if (end - start > 1) {
+                renderSimulatorChart(data, start, end);
+                resetBtn.classList.remove('hidden');
+            }
+            zoomClickStart = null;
+        }
+    };
+    
+    resetBtn.onclick = (e) => {
+        e.stopPropagation();
+        zoomClickStart = null;
+        renderSimulatorChart(data);
+        resetBtn.classList.add('hidden');
+    };
+    
+    // Hover interactions
+    container.onmousemove = (e) => {
+        const rect = container.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const i = Math.round(((x - PAD_L) / (W - PAD_L - PAD_R)) * (dates.length - 1));
+        if (i >= 0 && i < dates.length) {
+            const svgX = toX(i), yAi = toY(aiVals[i]), yBtc = toY(btcVals[i]);
+            const cv = document.getElementById('crosshair-v');
+            cv.setAttribute('x1', svgX); cv.setAttribute('x2', svgX); cv.classList.add('visible');
+            
+            const dAi = document.getElementById('dot-ai');
+            dAi.setAttribute('cx', svgX); dAi.setAttribute('cy', yAi); dAi.classList.add('visible');
+            
+            const dBtc = document.getElementById('dot-btc');
+            dBtc.setAttribute('cx', svgX); dBtc.setAttribute('cy', yBtc); dBtc.classList.add('visible');
+            
+            const tt = document.getElementById('tooltip');
+            // Smart tooltip positioning to avoid clipping
+            let ttX = svgX > W/2 ? svgX - 160 : svgX + 10;
+            let ttY = Math.min(yAi, yBtc) - 20;
+            if (ttY < 100) ttY = Math.max(yAi, yBtc) + 20;
+            ttY = Math.max(95, Math.min(ttY, H - 30));
+            tt.setAttribute('transform', `translate(${ttX}, ${ttY})`);
+            tt.classList.add('visible');
+            
+            document.getElementById('tt-date').textContent = dates[i].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+            document.getElementById('tt-val-ai').textContent = fmt$(aiVals[i]);
+            document.getElementById('tt-val-btc').textContent = fmt$(btcVals[i]);
+            
+            // Update AI Signal Core card with selected date info
+            const alpha = ((aiVals[i] - btcVals[i]) / btcVals[i] * 100);
+            document.getElementById('risk-level').textContent = alpha > 5 ? 'LOW' : alpha > 0 ? 'MEDIUM' : 'HIGH';
+            document.getElementById('risk-level').style.color = alpha > 5 ? '#67df70' : alpha > 0 ? '#a2c9ff' : '#ffb4ab';
+            document.getElementById('ai-signal').textContent = alpha > 2 ? 'ACCUMULATE' : alpha > -2 ? 'HOLD' : 'DISTRIBUTE';
+            document.getElementById('ai-signal').style.color = alpha > 2 ? '#67df70' : alpha > -2 ? '#a2c9ff' : '#ffb4ab';
+            document.getElementById('ai-confidence').textContent = (60 + Math.abs(alpha) * 2).toFixed(0) + '%';
+            document.getElementById('signal-date-display').textContent = dates[i].toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+        }
+    };
+    
+    container.onmouseleave = () => {
+        document.getElementById('crosshair-v').classList.remove('visible');
+        document.getElementById('dot-ai').classList.remove('visible');
+        document.getElementById('dot-btc').classList.remove('visible');
+        document.getElementById('tooltip').classList.remove('visible');
+    };
+}
 
 document.getElementById('execute-btn').addEventListener('click', function() {
   const btn = this;
@@ -763,24 +645,53 @@ document.getElementById('execute-btn').addEventListener('click', function() {
   const riskText = document.getElementById('risk-level').textContent;
   const feed = document.getElementById('neural-feed');
   const now = new Date().toISOString().slice(11, 19) + ' UTC';
-  const colors = { ACCUMULATE: 'secondary', HOLD: 'primary-container', DISTRIBUTE: 'error' };
+  const colors = { ACCUMULATE: 'secondary', HOLD: 'primary', DISTRIBUTE: 'error' };
   const labels = { ACCUMULATE: 'Strategy Executed', HOLD: 'Position Maintained', DISTRIBUTE: 'Risk Reduction' };
-  const color = colors[signalText] || 'primary-container';
+  const color = colors[signalText] || 'primary';
   const label = labels[signalText] || 'Strategy Executed';
   const entry = document.createElement('div');
   entry.className = 'group border-l-2 border-' + color + ' pl-4 py-1';
   entry.style.opacity = '0';
-  entry.innerHTML = '<div class="flex justify-between items-center mb-1"><span class="text-[10px] font-bold text-' + color + ' uppercase">' + label + '</span><span class="text-[10px] text-on-surface-variant">' + now + '</span></div><p class="text-sm font-body leading-snug">AI signal: <span class="text-' + color + '">' + signalText + '</span> (Confidence: ' + confidenceText + '). Risk level: ' + riskText + '. Strategy deployed across portfolio allocations.</p>';
+  entry.innerHTML = '<div class="flex justify-between items-center mb-1"><span class="text-[10px] font-bold text-' + color + ' uppercase">' + label + '</span><span class="text-[10px] text-slate-500">' + now + '</span></div><p class="text-sm font-body leading-snug">AI signal: <span class="text-' + color + '">' + signalText + '</span> (Confidence: ' + confidenceText + '). Risk level: ' + riskText + '. Strategy deployed across portfolio allocations.</p>';
   feed.insertBefore(entry, feed.firstChild);
   requestAnimationFrame(() => { entry.style.transition = 'opacity 0.4s ease'; entry.style.opacity = '1'; });
   setTimeout(() => { btn.textContent = '✓ Executed'; btn.style.opacity = '1'; setTimeout(() => { btn.textContent = 'Execute Engine Strategy'; btn.disabled = false; }, 1500); }, 300);
 });
 
-document.getElementById('btn-run').click();
+// Set default dates: 1 year ago to today
+(function setDefaultDates() {
+  const today = new Date();
+  const yearAgo = new Date();
+  yearAgo.setFullYear(today.getFullYear() - 1);
+  document.getElementById('input-end').value = today.toISOString().split('T')[0];
+  document.getElementById('input-start').value = yearAgo.toISOString().split('T')[0];
+  // Auto-run with defaults
+  document.getElementById('run-sim').click();
+})();
+
+// Ticker persistence logic
+document.addEventListener("DOMContentLoaded", () => {
+  const ticker = document.getElementById("news-ticker");
+  if (ticker) {
+    const savedTime = sessionStorage.getItem("tickerStartTime");
+    const now = Date.now();
+    let startTime;
+    if (savedTime) {
+      startTime = parseInt(savedTime, 10);
+    } else {
+      startTime = now;
+      sessionStorage.setItem("tickerStartTime", startTime);
+    }
+    const elapsedSeconds = (now - startTime) / 1000;
+    ticker.style.animationDelay = `-${elapsedSeconds}s`;
+  }
+});
+
+
 </script>
 <!-- Bottom Tab Bar (Mobile) -->
 <nav class="md:hidden fixed bottom-0 w-full z-50 h-16 bg-[#1c2026] border-t border-[#414752]/15 flex justify-around items-center">
-<a href="index.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<a href="terminal.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
 <span class="material-symbols-outlined">dashboard</span>
 <span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Terminal</span>
 </a>

@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NeuralEdge Terminal</title>
+<link rel="icon" type="image/png" href="favicon.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" crossorigin href="https://fonts.gstatic.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "surface-dim": "#10141a",
+        "surface-container": "#1c2026",
+        "surface-container-low": "#181c22",
+        "surface-container-lowest": "#0a0e14",
+        "surface-container-high": "#262a31",
+        "surface-container-highest": "#31353c",
+        "surface-bright": "#353940",
+        "surface-variant": "#31353c",
+        "on-surface": "#dfe2eb",
+        "on-surface-variant": "#c0c7d4",
+        "outline-variant": "#414752",
+        "outline": "#8b919d",
+        "primary": "#a2c9ff",
+        "primary-container": "#58a6ff",
+        "on-primary": "#00315c",
+        "on-primary-container": "#003a6b",
+        "on-primary-fixed": "#001c38",
+        "on-primary-fixed-variant": "#004882",
+        "primary-fixed": "#d3e4ff",
+        "primary-fixed-dim": "#a2c9ff",
+        "secondary": "#67df70",
+        "secondary-container": "#27a640",
+        "secondary-fixed-dim": "#67df70",
+        "on-secondary": "#00390d",
+        "on-secondary-container": "#00320a",
+        "tertiary": "#ffb4ac",
+        "tertiary-container": "#ff7b70",
+        "on-tertiary": "#690007",
+        "on-tertiary-container": "#790009",
+        "error": "#ffb4ab",
+        "error-container": "#93000a",
+        "inverse-surface": "#dfe2eb",
+        "inverse-primary": "#0060aa",
+        "background": "#10141a",
+        "on-background": "#dfe2eb",
+      },
+      fontFamily: {
+        "headline": ["Space Grotesk"],
+        "body": ["Inter"],
+        "label": ["Inter"]
+      },
+      borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+    },
+  },
+};
+</script>
+<style>
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(103, 223, 112, 0.4); }
+  50% { box-shadow: 0 0 12px rgba(103, 223, 112, 0.8); }
+}
+@keyframes dash {
+  to { stroke-dashoffset: 0; }
+}
+.live-dot { animation: pulse-glow 2s ease-in-out infinite; }
+.prediction-line { stroke-dasharray: 8,6; animation: dash 1s linear infinite; }
+.chart-crosshair { stroke: #e2e8f0; stroke-width: 1; stroke-dasharray: 4,4; opacity: 0; pointer-events: none; transition: opacity 0.15s; }
+.dark .chart-crosshair { stroke: #334155; }
+.chart-crosshair.visible { opacity: 1; }
+.chart-dot { fill: var(--chart-1, #000); stroke: #fff; stroke-width: 2; r: 4; opacity: 0; transition: opacity 0.15s; }
+.dark .chart-dot { stroke: #0f172a; }
+.chart-dot.visible { opacity: 1; }
+@keyframes ticker {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
+}
+.chart-tooltip { opacity: 0; transition: opacity 0.15s; pointer-events: none; }
+.chart-tooltip.visible { opacity: 1; }
+</style>
+</head>
+<body class="bg-[#0a0e14] text-on-surface font-body">
+<nav class="bg-[#10141a] text-[#a2c9ff] font-['Space_Grotesk'] tracking-tight flex justify-between items-center w-full px-6 py-3 h-16 fixed top-0 z-50">
+<div class="flex items-center gap-8">
+<span class="text-xl font-bold tracking-tighter text-[#a2c9ff]">NeuralEdge Terminal</span>
+<nav class="hidden md:flex items-center gap-6 text-sm uppercase font-medium">
+<a class="text-[#a2c9ff] border-b-2 border-[#58a6ff] pb-1 cursor-pointer active:opacity-80" href="#">Terminal</a>
+<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="simulator.html">Simulator</a>
+<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="engine-room.html">Engine Room</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#67df70] live-dot"></div>
+<span class="text-[10px] text-[#67df70] font-mono uppercase">Live</span>
+</div>
+<button class="material-symbols-outlined p-2 rounded hover:bg-[#31353c]/60 transition-colors cursor-pointer">notifications</button>
+</div>
+</nav>
+
+<!-- Live News Ticker -->
+<div class="fixed top-16 w-full z-40 bg-[#1c2026] text-[#c0c7d4] border-b border-outline-variant/10 h-8 flex items-center overflow-hidden">
+  <div class="px-4 text-[10px] font-bold uppercase tracking-widest text-[#a2c9ff] bg-[#1c2026] z-10 flex-shrink-0 border-r border-[#414752]/30 h-full flex items-center shadow-[4px_0_12px_#1c2026]">
+    Live Feed
+  </div>
+  <div class="flex-1 overflow-hidden relative h-full flex items-center">
+    <div id="news-ticker" class="absolute whitespace-nowrap pl-4 flex items-center" style="animation: ticker 45s linear infinite;">
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#a2c9ff] mr-2">◉</span>COINGEEK: spot Bitcoin ETF inflows reach $2.4B this week</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>ON-CHAIN: Whale wallets accumulate 15,000 BTC in last 24h</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#a2c9ff] mr-2">◉</span>MACRO: Federal Reserve signals rate pause, boosting risk assets</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>MINING: Global hash rate hits new all-time high of 600 EH/s</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#ffb4ab] mr-2">◉</span>SENTIMENT: Fear & Greed index moves to 'Extreme Greed' at 78</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>INSTITUTIONAL: MicroStrategy acquires additional 3,000 BTC</span>
+    </div>
+  </div>
+</div>
+
+<!-- Investment Disclaimer -->
+<div class="bg-error-container border-b border-error/20 px-4 py-3 text-center">
+  <p class="text-xs md:text-sm text-on-error-container">
+    <span class="font-bold">⚠️ Disclaimer:</span> This is NOT professional financial advice. 
+    For research and educational purposes only. Cryptocurrency investments carry risk — never invest more than you can afford to lose.
+  </p>
+</div>
+
+<main class="pt-20 px-4 md:px-6 pb-24 max-w-[1600px] mx-auto">
+<!-- Top Metrics Row -->
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6">
+<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+<div class="flex justify-between items-center mb-1">
+  <p class="text-xs text-on-surface-variant font-label uppercase tracking-widest">BTC Price</p>
+  <span class="text-[9px] text-on-surface-variant font-mono uppercase bg-[#181c22] px-2 py-0.5 rounded border border-[#414752]/30">Update in <span id="update-timer" class="text-[#a2c9ff] font-bold">10</span>s</span>
+</div>
+<h2 id="btc-price" class="text-2xl font-headline font-bold text-primary-fixed-dim loading-shimmer" style="width:100px;height:28px;">&nbsp;</h2>
+<div class="flex items-center gap-2 mt-2">
+<span id="btc-change" class="text-xs font-bold">--</span>
+<span class="text-[10px] text-on-surface-variant">24h</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Tomorrow's Signal</p>
+<h2 id="ai-signal" class="text-2xl font-headline font-bold text-primary loading-shimmer" style="width:100px;height:28px;">&nbsp;</h2>
+<div class="flex items-center gap-2 mt-2">
+<span id="risk-level" class="text-xs font-bold">--</span>
+<span class="text-[10px] text-on-surface-variant">Risk</span>
+</div>
+</div>
+<div class="bg-surface-container p-5 rounded border border-outline-variant/10 hover:bg-surface-container-high transition-all">
+<p class="text-xs text-on-surface-variant font-label uppercase tracking-widest mb-1">Confidence</p>
+<h2 id="ai-confidence" class="text-2xl font-headline font-bold text-secondary loading-shimmer" style="width:60px;height:28px;">&nbsp;</h2>
+<div class="flex items-center gap-2 mt-2">
+<span id="fg-value" class="text-xs font-bold">--</span>
+<span class="text-[10px] text-on-surface-variant">Fear & Greed</span>
+</div>
+</div>
+</div>
+
+<!-- Main Content -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Chart -->
+<div class="col-span-12 lg:col-span-8 bg-surface-container rounded p-6 relative overflow-hidden border border-outline-variant/10">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="text-lg font-headline font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">monitoring</span>
+BTC/USD — All Time
+</h3>
+<p id="chart-subtitle" class="text-xs text-on-surface-variant">Full historical data + AI prediction</p>
+</div>
+<div class="flex flex-wrap gap-4 text-[10px] font-bold uppercase tracking-tighter">
+<div class="flex items-center gap-2"><span class="w-4 h-1 rounded-sm bg-primary"></span> BTC/USD</div>
+<div class="flex items-center gap-2"><span class="w-4 h-1 rounded-sm border-t-2 border-dashed border-[#67df70]"></span> AI Prediction</div>
+</div>
+</div>
+<div id="chart-container" class="h-[250px] md:h-[400px] w-full relative cursor-crosshair">
+<svg id="chart-svg" class="w-full h-full" preserveAspectRatio="none">
+<g id="grid-lines" opacity="0.3" stroke="#e2e8f0" stroke-width="1"></g>
+<g id="y-axis" fill="#64748b" font-size="12" font-family="Inter"></g>
+<g id="x-axis" fill="#64748b" font-size="12" font-family="Inter"></g>
+<path id="price-line" d="" fill="none" stroke="hsl(221.2 83.2% 53.3%)" style="--chart-1: hsl(221.2 83.2% 53.3%);" stroke-width="2"/>
+<path id="price-fill" d="" fill="none" opacity="0"/>
+<path id="pred-line" d="" fill="none" stroke="hsl(142.1 76.2% 36.3%)" stroke-width="2" class="prediction-line" opacity="0.8"/>
+<circle id="pred-dot" cx="0" cy="0" r="4" fill="hsl(142.1 76.2% 36.3%)" opacity="1"/>
+<circle id="pred-ring" cx="0" cy="0" r="10" fill="none" stroke="hsl(142.1 76.2% 36.3%)" stroke-width="1" opacity="0.2"/>
+<line id="crosshair-v" class="chart-crosshair" x1="0" y1="0" x2="0" y2="400"/>
+<circle id="dot-price" class="chart-dot" style="--chart-1: hsl(221.2 83.2% 53.3%);" cx="0" cy="0"/>
+<g id="tooltip" class="chart-tooltip">
+<rect x="-75" y="-60" width="150" height="50" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" style="filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.05));"/>
+<text id="tt-date" x="-60" y="-40" text-anchor="start" fill="#64748b" font-size="12" font-family="Inter"></text>
+<text id="tt-price" x="-60" y="-20" text-anchor="start" fill="#0f172a" font-size="14" font-weight="600" font-family="Inter"></text>
+<circle cx="-65" cy="-24" r="3" fill="hsl(221.2 83.2% 53.3%)"></circle>
+</g>
+</svg>
+</div>
+</div>
+
+<!-- AI Signal Core -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container rounded p-6 border border-outline-variant/10 flex flex-col">
+<div class="mb-6">
+<h3 class="text-sm font-bold flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-sm">psychology</span>
+AI Signal Core
+</h3>
+<p class="text-[10px] text-on-surface-variant">Direction-based estimate (NeuralEdge Challenger predicts UP/DOWN with 63.96% accuracy)</p>
+</div>
+<div class="bg-surface-container p-6 rounded border border-outline-variant/10 flex flex-col justify-between flex-1">
+<div>
+<div class="flex items-center justify-between mb-4">
+<div>
+<p class="text-xs text-on-surface-variant mb-1">Risk Level</p>
+<h4 id="risk-detail" class="text-xl font-headline font-bold text-secondary">--</h4>
+</div>
+<div class="text-right">
+<p class="text-xs text-on-surface-variant mb-1">AI Recommendation</p>
+<h4 id="signal-detail" class="text-xl font-headline font-bold text-primary">--</h4>
+</div>
+</div>
+<div class="flex items-center justify-between mb-4">
+<span class="text-xs text-on-surface-variant">Confidence: <span id="confidence-detail" class="text-primary font-bold">--</span></span>
+</div>
+<div class="bg-[#0a0e14] rounded-lg p-3 font-mono text-[10px] text-[#a2c9ff]/80 border border-[#a2c9ff]/10 mb-4">
+<p class="text-[#8b919d] mb-1">[MODEL]: NeuralEdge Challenger (Fine-Tuned Dual-Head Transformer)</p>
+<p id="model-prob" class="text-[#c0c7d4] mb-1">--</p>
+<p id="model-timestamp" class="text-[#67df70]">--</p>
+</div>
+
+<button id="execute-btn" class="w-full py-3 bg-gradient-to-r from-primary to-primary-container rounded font-bold text-on-primary-container text-sm transition-transform active:scale-95 cursor-pointer">
+Execute Engine Strategy
+</button>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Neural Log -->
+<div class="mt-6 bg-surface-container rounded border border-outline-variant/10 flex flex-col">
+<div class="p-5 border-b border-outline-variant/10 flex justify-between items-center">
+<h3 class="text-sm font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-xs">terminal</span>
+Live Neural Log
+</h3>
+<span id="log-count" class="text-[10px] text-on-surface-variant">0 entries</span>
+</div>
+<div id="neural-feed" class="p-4 space-y-4 overflow-y-auto max-h-[380px]">
+<div class="text-center py-12 text-on-surface-variant">
+<span class="material-symbols-outlined text-4xl mb-2 opacity-30">analytics</span>
+<p class="text-sm">Waiting for live data...</p>
+</div>
+</div>
+</div>
+</main>
+
+<script>
+const API = 'http://localhost:8003';
+
+function fmt$(v) { return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}); }
+
+async function api(path) {
+  try {
+    const r = await fetch(API + path);
+    if (!r.ok) throw new Error(r.status);
+    return await r.json();
+  } catch (e) {
+    console.warn('API fetch failed for', path, e);
+    return null;
+  }
+}
+
+async function refreshTerminal() {
+  const [btc, signal, portfolio, fg, fullHistory] = await Promise.all([
+    api('/api/btc'), api('/api/signal'), api('/api/portfolio'),
+    api('/api/fear-greed'), api('/api/btc/history/full')
+  ]);
+
+  if (btc) {
+    document.getElementById('btc-price').textContent = fmt$(btc.price);
+    document.getElementById('btc-price').style.width = 'auto';
+    document.getElementById('btc-price').style.height = 'auto';
+    const bc = document.getElementById('btc-change');
+    bc.textContent = (btc.change_24h >= 0 ? '+' : '') + btc.change_24h + '%';
+    bc.style.color = btc.change_24h >= 0 ? '#67df70' : '#ffb4ab';
+  }
+
+  if (signal) {
+    document.getElementById('ai-signal').textContent = signal.signal;
+    document.getElementById('ai-signal').style.width = 'auto';
+    document.getElementById('ai-signal').style.height = 'auto';
+    document.getElementById('ai-signal').style.color = signal.signal === 'ACCUMULATE' ? '#67df70' : signal.signal === 'DISTRIBUTE' ? '#ffb4ab' : '#a2c9ff';
+
+    document.getElementById('risk-level').textContent = signal.risk_level;
+    document.getElementById('risk-level').style.color = signal.risk_level === 'LOW' ? '#67df70' : signal.risk_level === 'MEDIUM' ? '#a2c9ff' : '#ffb4ab';
+
+    document.getElementById('ai-confidence').textContent = signal.confidence + '%';
+    document.getElementById('ai-confidence').style.width = 'auto';
+    document.getElementById('ai-confidence').style.height = 'auto';
+
+    document.getElementById('risk-detail').textContent = signal.risk_level;
+    document.getElementById('risk-detail').style.color = signal.risk_level === 'LOW' ? '#67df70' : signal.risk_level === 'MEDIUM' ? '#a2c9ff' : '#ffb4ab';
+    document.getElementById('signal-detail').textContent = signal.signal;
+    document.getElementById('signal-detail').style.color = signal.signal === 'ACCUMULATE' ? '#67df70' : signal.signal === 'DISTRIBUTE' ? '#ffb4ab' : '#a2c9ff';
+    document.getElementById('confidence-detail').textContent = signal.confidence + '%';
+    document.getElementById('model-prob').textContent = '> Probability: ' + signal.probability;
+    document.getElementById('model-timestamp').textContent = '> ' + new Date(signal.timestamp).toLocaleTimeString();
+
+    // Render chart
+    if (btc && fullHistory && fullHistory.prices && fullHistory.prices.length > 0) {
+      const lastPrice = btc.price;
+      const tomorrowDir = signal.signal === 'ACCUMULATE' ? 1.01 : 0.99;
+      renderTerminalChart(fullHistory.prices, lastPrice, lastPrice * tomorrowDir);
+    }
+  }
+
+  if (fg) {
+    document.getElementById('fg-value').textContent = fg.value + ' (' + fg.classification + ')';
+    document.getElementById('fg-value').style.color = fg.value > 60 ? '#67df70' : fg.value > 40 ? '#a2c9ff' : '#ffb4ab';
+  }
+
+  if (portfolio) {
+    document.getElementById('portfolio-value').textContent = fmt$(portfolio.portfolio_value);
+    document.getElementById('portfolio-value').style.width = 'auto';
+    document.getElementById('portfolio-value').style.height = 'auto';
+    const pr = document.getElementById('portfolio-return');
+    pr.textContent = '+' + portfolio.return_30d + '%';
+    pr.style.color = '#67df70';
+  }
+
+  if (signal) {
+    addLogEntry(signal);
+  }
+}
+
+function renderTerminalChart(history, currentPrice, tomorrowPrice) {
+  const container = document.getElementById('chart-container');
+  const rect = container.getBoundingClientRect();
+  const W = Math.max(rect.width, 320);
+  const H = Math.max(rect.height, 200);
+  document.getElementById('chart-svg').setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  const PAD_L = W < 400 ? 50 : 80, PAD_R = W < 400 ? 20 : 40, PAD_T = 15, PAD_B = 40;
+
+  // Show last 365 days for readability, or all if less
+  const maxPoints = 365;
+  const data = history.length > maxPoints ? history.slice(-maxPoints) : history;
+  const hasPrediction = true;
+
+  const allPrices = data.map(d => d.price);
+  allPrices.push(currentPrice, tomorrowPrice);
+  const minV = Math.min(...allPrices) * 0.98;
+  const maxV = Math.max(...allPrices) * 1.02;
+  const range = maxV - minV || 1;
+
+  const totalPoints = data.length + 2; // +2 for current + tomorrow
+  const toX = (i) => PAD_L + (i / (totalPoints - 1)) * (W - PAD_L - PAD_R);
+  const toY = (v) => H - PAD_B - ((v - minV) / range) * (H - PAD_T - PAD_B);
+
+  // Y-axis
+  const yAxis = document.getElementById('y-axis');
+  const xAxis = document.getElementById('x-axis');
+  const gridLines = document.getElementById('grid-lines');
+  yAxis.innerHTML = '';
+  xAxis.innerHTML = '';
+  gridLines.innerHTML = '';
+
+  // X-axis baseline
+  gridLines.innerHTML += '<line x1="' + PAD_L + '" y1="' + (H - PAD_B) + '" x2="' + (W - PAD_R) + '" y2="' + (H - PAD_B) + '" stroke="#e2e8f0" stroke-width="1"/>';
+
+  for (let i = 0; i <= 5; i++) {
+    const val = minV + (range * i / 5);
+    const y = toY(val);
+    yAxis.innerHTML += '<text x="' + (PAD_L - 25) + '" y="' + (y + 4) + '" text-anchor="end">' + fmt$(val) + '</text>';
+    if (i > 0 && i < 5) gridLines.innerHTML += '<line x1="' + Math.max(0, PAD_L - 20) + '" y1="' + y + '" x2="' + W + '" y2="' + y + '"/>';
+  }
+
+  // Tomorrow label
+  const tomorrowX = toX(totalPoints - 1);
+  xAxis.innerHTML += '<text x="' + tomorrowX + '" y="' + (H - 12) + '" text-anchor="middle" fill="#67df70" font-weight="bold">Tomorrow</text>';
+
+  // X-axis labels (skip if too close to Tomorrow)
+  const labelCount = Math.min(data.length, 6);
+  const step = Math.max(1, Math.floor(data.length / labelCount));
+  for (let i = 0; i < data.length; i += step) {
+    const d = new Date(data[i].date);
+    const x = toX(i);
+    if (tomorrowX - x < 60) continue;
+    xAxis.innerHTML += '<text x="' + x + '" y="' + (H - 12) + '" text-anchor="middle">' + d.toLocaleDateString('en-US', {month:'short', year:'2-digit'}) + '</text>';
+  }
+
+  const getBezierPath = (points) => {
+    if (points.length === 0) return '';
+    let d = 'M' + points[0].x + ',' + points[0].y;
+    for (let i = 0; i < points.length - 1; i++) {
+        const p0 = points[i];
+        const p1 = points[i+1];
+        const cx = (p0.x + p1.x) / 2;
+        d += ` C${cx},${p0.y} ${cx},${p1.y} ${p1.x},${p1.y}`;
+    }
+    return d;
+  };
+
+  const pts = [];
+  for (let i = 0; i < data.length; i++) {
+    pts.push({x: toX(i), y: toY(data[i].price)});
+  }
+  const currentIdx = data.length;
+  const currentX = toX(currentIdx);
+  const currentY = toY(currentPrice);
+  pts.push({x: currentX, y: currentY});
+
+  const lineD = getBezierPath(pts);
+  document.getElementById('price-line').setAttribute('d', lineD);
+  document.getElementById('price-fill').setAttribute('d', ''); // Shadcn example has no fill
+  
+  // Prediction line (from current to tomorrow)
+  const predX = toX(totalPoints - 1);
+  const predY = toY(tomorrowPrice);
+  document.getElementById('pred-line').setAttribute('d', 'M' + currentX + ',' + currentY + ' L' + predX + ',' + predY);
+  document.getElementById('pred-dot').setAttribute('cx', predX);
+  document.getElementById('pred-dot').setAttribute('cy', predY);
+  document.getElementById('pred-ring').setAttribute('cx', predX);
+  document.getElementById('pred-ring').setAttribute('cy', predY);
+
+  // Hover interactions (reuse container from above)
+  const crosshair = document.getElementById('crosshair-v');
+  const dotPrice = document.getElementById('dot-price');
+  const tooltip = document.getElementById('tooltip');
+
+  container.onmousemove = (e) => {
+    const rect = container.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const chartFraction = Math.max(0, Math.min(1, (mouseX - PAD_L) / (W - PAD_L - PAD_R)));
+    const idx = Math.min(data.length - 1, Math.round(chartFraction * (data.length - 1)));
+    const svgX = toX(idx);
+    const svgY = toY(data[idx].price);
+    
+    // Crosshair matches Shadcn subtle vertical line
+    crosshair.setAttribute('x1', svgX);
+    crosshair.setAttribute('x2', svgX);
+    crosshair.classList.add('visible');
+    
+    dotPrice.setAttribute('cx', svgX);
+    dotPrice.setAttribute('cy', svgY);
+    dotPrice.classList.add('visible');
+    
+    // Position tooltip to avoid overflowing
+    let ttX = svgX + 20;
+
+    // Horizontal flip
+    if (ttX + 180 > W) ttX = svgX - 200;
+
+    // Vertical placement: default to above
+    let ttY = svgY - 20;
+
+    // Flip vertical if too high
+    if (ttY < 60) ttY = svgY + 20;
+
+    // Clamp
+    ttY = Math.max(60, Math.min(ttY, H - 20));
+    
+    tooltip.setAttribute('transform', 'translate(' + ttX + ',' + ttY + ')');
+    tooltip.classList.add('visible');
+    
+    document.getElementById('tt-date').textContent = new Date(data[idx].date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    document.getElementById('tt-price').textContent = fmt$(data[idx].price);
+  };
+
+  container.onmouseleave = () => {
+    crosshair.classList.remove('visible');
+    dotPrice.classList.remove('visible');
+    tooltip.classList.remove('visible');
+  };
+}
+
+let lastLogTime = 0;
+function addLogEntry(signal) {
+  const now = Date.now();
+  if (now - lastLogTime < 30000) return;
+  lastLogTime = now;
+
+  const feed = document.getElementById('neural-feed');
+  const placeholder = feed.querySelector('.text-center');
+  if (placeholder) placeholder.remove();
+
+  const colors = { ACCUMULATE: 'secondary', HOLD: 'primary-container', DISTRIBUTE: 'error' };
+  const labels = { ACCUMULATE: 'Signal: Accumulate', HOLD: 'Signal: Hold', DISTRIBUTE: 'Signal: Distribute' };
+  const color = colors[signal.signal] || 'primary-container';
+  const label = labels[signal.signal] || 'Signal Update';
+  const nowStr = new Date().toISOString().slice(11, 19) + ' UTC';
+
+  const entry = document.createElement('div');
+  entry.className = 'group border-l-2 border-' + color + ' pl-4 py-1';
+  entry.style.opacity = '0';
+  entry.innerHTML = '<div class="flex justify-between items-center mb-1">' +
+    '<span class="text-[10px] font-bold text-' + color + ' uppercase">' + label + '</span>' +
+    '<span class="text-[10px] text-on-surface-variant">' + nowStr + '</span>' +
+    '</div>' +
+    '<p class="text-sm font-body leading-snug">Model3 confidence: ' + signal.confidence + '%. Risk: ' + signal.risk_level + '. Probability: ' + signal.probability + '.</p>';
+  feed.insertBefore(entry, feed.firstChild);
+  requestAnimationFrame(() => { entry.style.transition = 'opacity 0.4s ease'; entry.style.opacity = '1'; });
+
+  const entries = feed.querySelectorAll('.group');
+  if (entries.length > 20) entries[entries.length - 1].remove();
+  document.getElementById('log-count').textContent = Math.min(entries.length, 20) + ' entries';
+}
+
+document.getElementById('execute-btn').addEventListener('click', async function() {
+  const btn = this;
+  if (btn.disabled) return;
+  btn.textContent = 'Executing...';
+  btn.disabled = true;
+  btn.style.opacity = '0.6';
+
+  const signalText = document.getElementById('signal-detail').textContent;
+  const confidenceText = document.getElementById('confidence-detail').textContent;
+  const riskText = document.getElementById('risk-detail').textContent;
+
+  const feed = document.getElementById('neural-feed');
+  const now = new Date().toISOString().slice(11, 19) + ' UTC';
+  const colors = { ACCUMULATE: 'secondary', HOLD: 'primary-container', DISTRIBUTE: 'error' };
+  const labels = { ACCUMULATE: 'Strategy Executed', HOLD: 'Position Maintained', DISTRIBUTE: 'Risk Reduction' };
+  const color = colors[signalText] || 'primary-container';
+  const label = labels[signalText] || 'Strategy Executed';
+
+  const entry = document.createElement('div');
+  entry.className = 'group border-l-2 border-' + color + ' pl-4 py-1';
+  entry.style.opacity = '0';
+  entry.innerHTML = '<div class="flex justify-between items-center mb-1">' +
+    '<span class="text-[10px] font-bold text-' + color + ' uppercase">' + label + '</span>' +
+    '<span class="text-[10px] text-on-surface-variant">' + now + '</span>' +
+    '</div>' +
+    '<p class="text-sm font-body leading-snug">AI signal: <span class="text-' + color + '">' + signalText + '</span> (Confidence: ' + confidenceText + '). Risk level: ' + riskText + '. Strategy deployed across portfolio allocations.</p>';
+  feed.insertBefore(entry, feed.firstChild);
+  requestAnimationFrame(() => { entry.style.transition = 'opacity 0.4s ease'; entry.style.opacity = '1'; });
+
+  setTimeout(() => {
+    btn.textContent = '✓ Executed';
+    btn.style.opacity = '1';
+    setTimeout(() => {
+      btn.textContent = 'Execute Engine Strategy';
+      btn.disabled = false;
+    }, 1500);
+  }, 300);
+});
+
+refreshTerminal();
+
+let countdown = 10;
+let modelInterval;
+
+// Ticker persistence logic
+document.addEventListener("DOMContentLoaded", () => {
+  const ticker = document.getElementById("news-ticker");
+  if (ticker) {
+    const savedTime = sessionStorage.getItem("tickerStartTime");
+    const now = Date.now();
+    let startTime;
+    if (savedTime) {
+      startTime = parseInt(savedTime, 10);
+    } else {
+      startTime = now;
+      sessionStorage.setItem("tickerStartTime", startTime);
+    }
+    const elapsedSeconds = ((now - startTime) / 1000) % 45;
+    ticker.style.animationDelay = `-${elapsedSeconds}s`;
+  }
+});
+
+setInterval(() => {
+  countdown--;
+  if(countdown <= 0) {
+    countdown = 10;
+    refreshTerminal();
+  }
+  const timer = document.getElementById('update-timer');
+  if(timer) timer.textContent = countdown;
+}, 1000);
+</script>
+<!-- Bottom Tab Bar (Mobile) -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 h-16 bg-[#1c2026] border-t border-[#414752]/15 flex justify-around items-center">
+<a href="index.html" class="flex flex-col items-center justify-center text-[#58a6ff] border-t-2 border-[#58a6ff] -mt-[2px] h-full px-6">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Terminal</span>
+</a>
+<a href="simulator.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Simulator</span>
+</a>
+<a href="engine-room.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<span class="material-symbols-outlined">memory</span>
+<span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Engine</span>
+</a>
+</nav>
+</body>
+</html>

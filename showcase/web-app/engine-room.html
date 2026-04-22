@@ -3,72 +3,32 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>NeuralEdge Terminal | Engine Room</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<link href="favicon.png" rel="icon" type="image/png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" crossorigin href="https://fonts.gstatic.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
 tailwind.config = {
-  darkMode: "class",
   theme: {
     extend: {
       colors: {
-        "on-primary-fixed": "#001c38",
-        "inverse-on-surface": "#2d3137",
-        "background": "#10141a",
-        "surface-variant": "#31353c",
-        "on-primary": "#00315c",
-        "secondary": "#67df70",
-        "on-secondary-container": "#00320a",
-        "on-primary-container": "#003a6b",
-        "on-error-container": "#ffdad6",
-        "primary-fixed-dim": "#a2c9ff",
-        "primary-fixed": "#d3e4ff",
-        "inverse-surface": "#dfe2eb",
-        "surface": "#10141a",
-        "on-surface": "#dfe2eb",
+        primary: "#58a6ff",
+        secondary: "#67df70",
+        error: "#ffb4ab",
+        surface: "#0a0e14",
         "surface-container": "#1c2026",
-        "error": "#ffb4ab",
-        "surface-bright": "#353940",
-        "secondary-fixed-dim": "#67df70",
-        "on-surface-variant": "#c0c7d4",
-        "primary-container": "#58a6ff",
-        "tertiary-fixed-dim": "#ffb4ac",
-        "surface-dim": "#10141a",
-        "on-primary-fixed-variant": "#004882",
-        "on-secondary-fixed-variant": "#005317",
-        "on-tertiary-container": "#790009",
-        "on-secondary": "#00390d",
-        "surface-container-lowest": "#0a0e14",
-        "on-secondary-fixed": "#002105",
-        "primary": "#a2c9ff",
-        "on-error": "#690005",
         "outline-variant": "#414752",
-        "secondary-fixed": "#83fc89",
-        "secondary-container": "#27a640",
-        "inverse-primary": "#0060aa",
-        "on-tertiary-fixed-variant": "#93000d",
-        "surface-container-low": "#181c22",
-        "error-container": "#93000a",
-        "on-background": "#dfe2eb",
-        "on-tertiary": "#690007",
-        "surface-container-highest": "#31353c",
-        "tertiary": "#ffb4ac",
-        "on-tertiary-fixed": "#410002",
-        "tertiary-container": "#ff7b70",
-        "tertiary-fixed": "#ffdad6",
-        "outline": "#8b919d",
-        "surface-tint": "#a2c9ff",
-        "surface-container-high": "#262a31"
       },
       fontFamily: {
-        "headline": ["Space Grotesk"],
-        "body": ["Inter"],
-        "label": ["Inter"]
-      },
-      borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
-    },
-  },
-};
+        headline: ["Space Grotesk", "sans-serif"],
+        body: ["Inter", "sans-serif"],
+        mono: ["JetBrains Mono", "monospace"],
+      }
+    }
+  }
+}
 </script>
 <style>
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
@@ -79,71 +39,95 @@ tailwind.config = {
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: #414752; border-radius: 10px; }
 @keyframes pulse-ring { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.8; } }
-.pulse-ring { animation: pulse-ring 2s ease-in-out infinite; }
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.1; transform: scale(1); }
+  50% { opacity: 0.3; transform: scale(1.1); }
+}
+@keyframes ticker {
+  0% { transform: translateX(100vw); }
+  100% { transform: translateX(-100%); }
+}
+.neural-glow { filter: drop-shadow(0 0 10px rgba(88, 166, 255, 0.4)); }
+.glass { background: rgba(28, 32, 38, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(65, 71, 82, 0.2); }
 </style>
 </head>
-<body class="bg-background text-on-surface font-body selection:bg-primary/30">
-<nav class="bg-[#10141a] text-[#a2c9ff] font-['Space_Grotesk'] tracking-tight flex justify-between items-center w-full px-6 py-3 h-16 fixed top-0 z-50">
-<div class="flex items-center gap-8">
-<span class="text-xl font-bold tracking-tighter text-[#a2c9ff]">NeuralEdge Terminal</span>
-<nav class="hidden md:flex items-center gap-6 text-sm uppercase font-medium">
-<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="index.html">Terminal</a>
-<a class="text-[#c0c7d4] hover:text-[#a2c9ff] hover:bg-[#31353c]/60 transition-colors cursor-pointer active:opacity-80" href="simulator.html">Simulator</a>
-<a class="text-[#a2c9ff] border-b-2 border-[#58a6ff] pb-1 cursor-pointer active:opacity-80" href="#">Engine Room</a>
-</nav>
-</div>
-<div class="flex items-center gap-4">
-<div class="flex items-center gap-2">
-<div class="w-2 h-2 rounded-full bg-[#67df70] live-dot"></div>
-<span class="text-[10px] text-[#67df70] font-mono uppercase">Live</span>
-</div>
-<button class="material-symbols-outlined p-2 rounded hover:bg-[#31353c]/60 transition-colors cursor-pointer">notifications</button>
-</div>
+<body class="bg-[#0a0e14] text-[#dfe2eb] font-body selection:bg-primary/30">
+<nav class="fixed top-0 w-full z-50 px-6 py-4 flex justify-between items-center glass border-b-none h-[72px]">
+    <div class="flex items-center gap-3">
+        <a href="index.html" class="flex items-center gap-3">
+            <img src="favicon.png" alt="NeuralEdge Logo" class="w-8 h-8 neural-glow">
+            <span class="font-headline font-bold text-xl tracking-tighter text-primary">NEURALEDGE</span>
+        </a>
+    </div>
+    <div class="hidden md:flex gap-8 text-[12px] font-bold uppercase tracking-widest text-slate-400">
+        <a href="terminal.html" class="hover:text-primary transition-colors">Platform</a>
+        <a href="simulator.html" class="hover:text-primary transition-colors">Simulation</a>
+        <a href="engine-room.html" class="text-primary border-b border-primary/40 pb-1">Intelligence</a>
+    </div>
+    <div class="flex items-center gap-4">
+        <div class="hidden sm:flex items-center gap-2">
+            <div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+            <span class="text-[10px] text-secondary font-bold uppercase tracking-wider">Nucleus Active</span>
+        </div>
+        <button class="material-symbols-outlined p-2 rounded glass hover:bg-white/10 transition-colors">notifications</button>
+    </div>
 </nav>
 
-<!-- Investment Disclaimer -->
-<div class="bg-error-container border-b border-error/20 px-4 py-3 text-center">
-  <p class="text-xs md:text-sm text-on-error-container">
-    <span class="font-bold">⚠️ Disclaimer:</span> This is NOT professional financial advice. 
-    For research and educational purposes only. Cryptocurrency investments carry risk — never invest more than you can afford to lose.
-  </p>
+<!-- Live News Ticker -->
+<div class="fixed top-[72px] w-full z-40 bg-[#1c2026] text-[#c0c7d4] border-b border-[#414752]/15 h-8 flex items-center overflow-hidden">
+  <div class="px-4 text-[10px] font-bold uppercase tracking-widest text-[#a2c9ff] bg-[#1c2026] z-10 flex-shrink-0 border-r border-[#414752]/30 h-full flex items-center shadow-[4px_0_12px_#1c2026]">
+    Live Feed
+  </div>
+  <div class="flex-1 overflow-hidden relative h-full flex items-center">
+    <div id="news-ticker" class="absolute whitespace-nowrap pl-4 flex items-center" style="animation: ticker 45s linear infinite;">
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#a2c9ff] mr-2">◉</span>COINTELEGRAPH: Global Bitcoin ETF AUM surpasses $120B following historic Q1 inflows</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>ON-CHAIN: Dormant Satoshi-era wallets move 2,000 BTC as market tests new resistance</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#a2c9ff] mr-2">◉</span>MACRO: Sovereign wealth funds confirm 1.5% Bitcoin core allocation</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>MINING: Market hash rate stabilizes at 750 EH/s amid rigorous hardware upgrades</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#ffb4ab] mr-2">◉</span>SENTIMENT: Fear & Greed indices surge as AI-driven trading expands</span>
+      <span class="mx-8 font-mono text-[11px]"><span class="text-[#67df70] mr-2">◉</span>INSTITUTIONAL: Regulatory clarity sparks record derivatives open interest</span>
+    </div>
+  </div>
 </div>
 
-<main class="pt-20 pb-24 px-4 md:px-6 max-w-[1600px] mx-auto">
+
+
+<main class="pt-[180px] pb-24 px-4 md:px-6 max-w-[1600px] mx-auto">
 <header class="flex flex-col gap-4 mb-6">
 <div class="flex flex-col gap-4 mb-6">
     <div>
     <h1 class="font-headline text-2xl md:text-4xl font-bold tracking-tighter neural-glow">Engine Room</h1>
-    <p class="text-on-surface-variant text-xs md:text-sm mt-1">NeuralEdge Challenger | Fine-Tuned Dual-Head Transformer | Live Inference</p>
+    <p class="text-slate-400 text-xs md:text-sm mt-1">NeuralEdge Challenger | Fine-Tuned Dual-Head Transformer | Live Inference</p>
     </div>
-<div class="grid grid-cols-3 gap-3 bg-surface-container p-3 md:p-4 rounded-xl border border-outline-variant/10">
+<div class="grid grid-cols-3 gap-6 glass p-6 rounded-2xl border-none">
 <div class="flex flex-col min-w-0">
-<span class="text-[9px] md:text-[0.6875rem] uppercase tracking-wider text-on-surface-variant font-medium truncate">Confidence</span>
-<span id="engine-confidence" class="text-lg md:text-2xl font-headline font-bold text-primary tracking-tight">--</span>
+<span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Confidence</span>
+<span id="engine-confidence" class="text-2xl font-headline font-bold text-primary tracking-tight">--</span>
 </div>
-<div class="flex flex-col min-w-0 border-l border-outline-variant/20 pl-3">
-<span class="text-[9px] md:text-[0.6875rem] uppercase tracking-wider text-on-surface-variant font-medium truncate">Fusion</span>
-<div class="flex items-center gap-1">
-<div id="fusion-dot" class="w-2 h-2 rounded-full bg-[#414752] flex-shrink-0"></div>
-<span id="fusion-status" class="text-on-surface-variant font-semibold text-xs md:text-base truncate">--</span>
+<div class="flex flex-col min-w-0 border-l border-white/5 pl-6">
+<span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Fusion</span>
+<div class="flex items-center gap-2">
+<div id="fusion-dot" class="w-2 h-2 rounded-full bg-slate-700 flex-shrink-0 animate-pulse"></div>
+<span id="fusion-status" class="text-white font-bold text-base truncate">--</span>
 </div>
 </div>
-<div class="flex flex-col min-w-0 border-l border-outline-variant/20 pl-3">
-<span class="text-[9px] md:text-[0.6875rem] uppercase tracking-wider text-on-surface-variant font-medium truncate">Latency</span>
-<span id="engine-latency" class="text-lg md:text-2xl font-headline font-bold text-secondary tracking-tight">--</span>
+<div class="flex flex-col min-w-0 border-l border-white/5 pl-6">
+<span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-2">Latency</span>
+<span id="engine-latency" class="text-2xl font-headline font-bold text-secondary tracking-tight">--</span>
 </div>
 </div>
 </header>
 
 <div class="bento-grid">
 <!-- Dual-Head AI Visualization -->
-<div class="md:col-span-12 lg:col-span-8 bg-surface-container rounded-xl overflow-hidden border border-outline-variant/10 flex flex-col">
-<div class="px-4 md:px-6 py-3 md:py-4 border-b border-outline-variant/5 flex justify-between items-center">
-<h2 class="font-headline font-semibold flex items-center gap-2 text-sm md:text-base">
-<span class="material-symbols-outlined text-primary text-lg md:text-base">psychology</span>
-Dual-Head Engine
+<div class="md:col-span-12 lg:col-span-8 glass rounded-2xl overflow-hidden flex flex-col">
+<div class="px-6 py-5 border-b border-white/5 flex justify-between items-center bg-white/5">
+<h2 class="font-headline font-bold flex items-center gap-2 text-sm text-white uppercase tracking-widest">
+<span class="material-symbols-outlined text-primary text-base">psychology</span>
+Dual-Head Core
 </h2>
-<span id="engine-timestamp" class="text-[9px] md:text-[10px] text-on-surface-variant font-mono">--</span>
+<span id="engine-timestamp" class="text-[10px] text-slate-500 font-mono">--</span>
 </div>
 <div class="p-4 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 relative">
 <!-- Head 1: On-Chain Metrics -->
@@ -155,21 +139,21 @@ Dual-Head Engine
 </svg>
 <div class="absolute inset-0 flex flex-col items-center justify-center">
 <span id="onchain-score" class="text-3xl font-headline font-bold">--</span>
-<span class="text-[0.6875rem] text-on-surface-variant uppercase">On-Chain Score</span>
+<span class="text-[0.6875rem] text-slate-400 uppercase">On-Chain Score</span>
 </div>
 </div>
 <div class="mt-8 w-full space-y-3">
-<h3 class="text-sm font-semibold border-l-2 border-primary pl-3">On-Chain Metrics</h3>
-<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
-<span class="text-on-surface-variant">Whale Flows</span>
+<h3 class="text-sm font-semibold border-l-2 border-primary pl-3 text-white">On-Chain Metrics</h3>
+<div class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/10">
+<span class="text-slate-400">Whale Flows</span>
 <span id="whale-flows" class="text-secondary font-mono">--</span>
 </div>
-<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
-<span class="text-on-surface-variant">Active Wallets</span>
-<span id="active-wallets" class="font-mono">--</span>
+<div class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/10">
+<span class="text-slate-400">Active Wallets</span>
+<span id="active-wallets" class="font-mono text-white">--</span>
 </div>
-<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
-<span class="text-on-surface-variant">MVRV Z-Score</span>
+<div class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/10">
+<span class="text-slate-400">MVRV Z-Score</span>
 <span id="mvrv-score" class="text-primary font-mono">--</span>
 </div>
 </div>
@@ -183,22 +167,22 @@ Dual-Head Engine
 </svg>
 <div class="absolute inset-0 flex flex-col items-center justify-center">
 <span id="sentiment-score" class="text-3xl font-headline font-bold">--</span>
-<span class="text-[0.6875rem] text-on-surface-variant uppercase">Sentiment Score</span>
+<span class="text-[0.6875rem] text-slate-400 uppercase">Sentiment Score</span>
 </div>
 </div>
 <div class="mt-8 w-full space-y-3">
-<h3 class="text-sm font-semibold border-l-2 border-secondary pl-3">Sentiment Analysis</h3>
-<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
-<span class="text-on-surface-variant">Google Trends</span>
+<h3 class="text-sm font-semibold border-l-2 border-secondary pl-3 text-white">Sentiment Analysis</h3>
+<div class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/10">
+<span class="text-slate-400">Google Trends</span>
 <span id="google-trends" class="text-primary font-mono">--</span>
 </div>
-<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
-<span class="text-on-surface-variant">Fear & Greed</span>
+<div class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/10">
+<span class="text-slate-400">Fear & Greed</span>
 <span id="fear-greed" class="text-secondary font-mono">--</span>
 </div>
-<div class="flex justify-between items-center text-sm p-3 bg-surface-container-low rounded-lg">
-<span class="text-on-surface-variant">Social Velocity</span>
-<span id="social-velocity" class="font-mono">--</span>
+<div class="flex justify-between items-center text-sm p-3 bg-white/5 rounded-lg border border-white/10">
+<span class="text-slate-400">Social Velocity</span>
+<span id="social-velocity" class="font-mono text-white">--</span>
 </div>
 </div>
 </div>
@@ -208,92 +192,90 @@ Dual-Head Engine
 <!-- Fusion Layer & Neural Logs -->
 <div class="md:col-span-12 lg:col-span-4 space-y-6">
 <!-- Fusion Status Card -->
-<div class="bg-surface-container rounded-xl p-6 border border-outline-variant/10">
-<h3 class="font-headline font-semibold mb-4 flex items-center gap-2">
-<span class="material-symbols-outlined text-secondary">hub</span>
-Fusion Layer Status
+<div class="glass rounded-2xl p-6">
+<h3 class="font-headline font-bold mb-6 flex items-center gap-2 text-white uppercase tracking-widest text-xs">
+<span class="material-symbols-outlined text-secondary text-sm">hub</span>
+Fusion Synthesis
 </h3>
 <div class="space-y-4">
-<div class="p-4 bg-surface-container-low rounded-lg border-l-4 border-primary">
+<div class="p-4 bg-white/5 rounded-xl border border-white/10">
 <div class="flex justify-between items-start mb-2">
-<span class="text-xs font-bold text-primary">LAYER 1: SIGNAL AGGREGATION</span>
-<span id="layer1-status" class="material-symbols-outlined text-[16px] text-on-surface-variant">pending</span>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Aggregation</span>
+<span id="layer1-status" class="material-symbols-outlined text-[14px] text-slate-500">pending</span>
 </div>
-<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
-<div id="layer1-bar" class="bg-primary h-full rounded-full" style="width: 0%"></div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div id="layer1-bar" class="bg-primary h-full rounded-full transition-all duration-500" style="width: 0%"></div>
 </div>
 </div>
-<div class="p-4 bg-surface-container-low rounded-lg border-l-4 border-primary">
+<div class="p-4 bg-white/5 rounded-xl border border-white/10">
 <div class="flex justify-between items-start mb-2">
-<span class="text-xs font-bold text-primary">LAYER 2: RISK WEIGHTING</span>
-<span id="layer2-status" class="material-symbols-outlined text-[16px] text-on-surface-variant">pending</span>
+<span class="text-[10px] font-bold text-primary uppercase tracking-widest">Risk Weighting</span>
+<span id="layer2-status" class="material-symbols-outlined text-[14px] text-slate-500">pending</span>
 </div>
-<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
-<div id="layer2-bar" class="bg-primary h-full rounded-full" style="width: 0%"></div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div id="layer2-bar" class="bg-primary h-full rounded-full transition-all duration-500" style="width: 0%"></div>
 </div>
 </div>
-<div class="p-4 bg-surface-container-low rounded-lg border-l-4 border-secondary">
+<div class="p-4 bg-white/5 rounded-xl border border-white/10">
 <div class="flex justify-between items-start mb-2">
-<span class="text-xs font-bold text-secondary">LAYER 3: FINAL INFERENCE</span>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Inference</span>
 <div id="layer3-dots" class="flex gap-1">
-<div class="w-1 h-1 bg-secondary"></div>
-<div class="w-1 h-1 bg-secondary"></div>
-<div class="w-1 h-1 bg-secondary"></div>
+<div class="w-1 h-1 bg-secondary rounded-full animate-pulse"></div>
 </div>
 </div>
-<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
-<div id="layer3-bar" class="bg-secondary h-full rounded-full" style="width: 0%"></div>
+<div class="w-full bg-white/5 h-1 rounded-full overflow-hidden">
+<div id="layer3-bar" class="bg-secondary h-full rounded-full transition-all duration-500" style="width: 0%"></div>
 </div>
 </div>
 </div>
 </div>
 <!-- Execution Feed / Logs -->
-<div class="bg-surface-container rounded-xl flex-grow border border-outline-variant/10 overflow-hidden">
-<div class="px-6 py-4 bg-surface-container-high flex justify-between items-center">
-<span class="font-headline font-semibold text-sm">Neural Engine Logs</span>
-<span class="material-symbols-outlined text-sm">terminal</span>
+<div class="glass rounded-2xl flex-grow overflow-hidden flex flex-col">
+<div class="px-6 py-4 bg-white/5 flex justify-between items-center border-b border-white/5">
+<span class="font-headline font-bold text-xs text-white uppercase tracking-widest">Neural Sequence Logs</span>
+<span class="material-symbols-outlined text-sm text-primary">terminal</span>
 </div>
-<div id="engine-logs" class="p-4 font-mono text-[11px] space-y-2 h-[320px] overflow-y-auto custom-scrollbar">
-<div class="text-on-surface-variant"><span class="text-primary">[--:--:--]</span> Waiting for live data...</div>
+<div id="engine-logs" class="p-4 font-mono text-[11px] space-y-2 h-[320px] overflow-y-auto custom-scrollbar bg-black/20">
+<div class="text-slate-500"><span class="text-primary font-bold">[SYSTEM]</span> Waiting for live engine flow...</div>
 </div>
 </div>
 </div>
 
 <!-- Neural Specification Panel -->
-<div class="md:col-span-12 bg-surface-container-low rounded-xl p-4 md:p-8 border border-outline-variant/10">
+<div class="md:col-span-12 glass rounded-2xl p-4 md:p-8">
     <div class="flex flex-col md:flex-row items-start justify-between gap-8">
         <div class="flex items-center gap-6">
             <div class="p-4 bg-primary/10 rounded-full">
                 <span class="material-symbols-outlined text-primary text-4xl">precision_manufacturing</span>
             </div>
             <div>
-                <h3 class="font-headline text-xl font-bold">Neural Specification</h3>
-                <p class="text-on-surface-variant text-sm">NeuralEdge Challenger (Retrained Winner GS Run 82)</p>
+                <h3 class="font-headline text-xl font-bold text-white">Neural Specification</h3>
+                <p class="text-slate-400 text-sm">NeuralEdge Challenger (Retrained Winner GS Run 82)</p>
             </div>
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 flex-1 w-full">
-            <div class="p-4 bg-[#0a0e14] rounded border border-outline-variant/5">
-                <p class="text-[10px] text-on-surface-variant uppercase mb-1">Accuracy (Val)</p>
+            <div class="p-4 bg-white/5 rounded-xl border border-white/10">
+                <p class="text-[10px] text-slate-500 uppercase mb-1 font-bold tracking-widest">Accuracy (Val)</p>
                 <p class="text-lg font-bold text-secondary">63.96%</p>
             </div>
-            <div class="p-4 bg-[#0a0e14] rounded border border-outline-variant/5">
-                <p class="text-[10px] text-on-surface-variant uppercase mb-1">Architecture</p>
+            <div class="p-4 bg-white/5 rounded-xl border border-white/10">
+                <p class="text-[10px] text-slate-500 uppercase mb-1 font-bold tracking-widest">Architecture</p>
                 <p class="text-lg font-bold text-primary">d32/h4/l2</p>
             </div>
-            <div class="p-4 bg-[#0a0e14] rounded border border-outline-variant/5">
-                <p class="text-[10px] text-on-surface-variant uppercase mb-1">F1-Score</p>
-                <p class="text-lg font-bold text-primary-fixed-dim">0.6209</p>
+            <div class="p-4 bg-white/5 rounded-xl border border-white/10">
+                <p class="text-[10px] text-slate-500 uppercase mb-1 font-bold tracking-widest">F1-Score</p>
+                <p class="text-lg font-bold text-[#a2c9ff]">0.6209</p>
             </div>
-            <div class="p-4 bg-[#0a0e14] rounded border border-outline-variant/5">
-                <p class="text-[10px] text-on-surface-variant uppercase mb-1">Threshold</p>
+            <div class="p-4 bg-white/5 rounded-xl border border-white/10">
+                <p class="text-[10px] text-slate-500 uppercase mb-1 font-bold tracking-widest">Threshold</p>
                 <p class="text-lg font-bold text-primary">0.65</p>
             </div>
         </div>
         <div class="flex gap-4 self-center">
-            <button id="btn-view-logs" class="px-8 py-3 bg-surface-container-highest border border-outline-variant/20 rounded-lg font-headline font-bold text-sm hover:bg-surface-container-high transition-colors cursor-pointer">
+            <button id="btn-view-logs" class="px-8 py-3 bg-white/5 border border-white/10 rounded-xl font-headline font-bold text-sm text-white hover:bg-white/10 transition-colors cursor-pointer">
                 VIEW LOGS
             </button>
-            <button id="btn-deploy" class="px-8 py-3 bg-gradient-to-br from-primary to-primary-container text-on-primary font-headline font-bold rounded-lg text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity cursor-pointer">
+            <button id="btn-deploy" class="px-8 py-3 bg-primary text-[#0a0e14] font-headline font-bold rounded-xl text-sm shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity cursor-pointer">
                 DEPLOY ENGINE
             </button>
         </div>
@@ -319,10 +301,10 @@ function fmtTime() { return new Date().toISOString().slice(11, 19); }
 
 function addLog(msg, color) {
   const logs = document.getElementById('engine-logs');
-  const placeholder = logs.querySelector('.text-on-surface-variant');
+  const placeholder = logs.querySelector('.text-slate-500');
   if (placeholder) placeholder.remove();
   const entry = document.createElement('div');
-  entry.className = color ? 'text-' + color : 'text-on-surface-variant';
+  entry.className = color ? 'text-' + color : 'text-slate-400';
   entry.innerHTML = '<span class="text-primary">[' + fmtTime() + ']</span> ' + msg;
   logs.insertBefore(entry, logs.firstChild);
   if (logs.children.length > 50) logs.removeChild(logs.lastChild);
@@ -380,8 +362,8 @@ async function refreshEngine() {
     dots.innerHTML = '<div class="w-1 h-1 bg-secondary animate-bounce"></div><div class="w-1 h-1 bg-secondary animate-bounce [animation-delay:0.2s]"></div><div class="w-1 h-1 bg-secondary animate-bounce [animation-delay:0.4s]"></div>';
 
     // Live logs
-    addLog('Head 1: On-Chain score ' + onchainScore.toFixed(1) + '. Whale flow: ' + engine.head1_onchain.whale_flow, 'on-surface-variant');
-    addLog('Head 2: Sentiment score ' + sentimentScore.toFixed(1) + '. F&G: ' + engine.head2_sentiment.greed_index, 'on-surface-variant');
+    addLog('Head 1: On-Chain score ' + onchainScore.toFixed(1) + '. Whale flow: ' + engine.head1_onchain.whale_flow, 'slate-400');
+    addLog('Head 2: Sentiment score ' + sentimentScore.toFixed(1) + '. F&G: ' + engine.head2_sentiment.greed_index, 'slate-400');
     addLog('Fusion Layer: Reconciliation at ' + reconciliation + '%. Consensus: ' + engine.fusion_layer.consensus, 'secondary');
     if (signal) addLog('Inference: ' + signal.signal + ' (Confidence: ' + signal.confidence + '%, Risk: ' + signal.risk_level + ')', signal.signal === 'ACCUMULATE' ? 'secondary' : signal.signal === 'DISTRIBUTE' ? 'error' : 'primary');
   }
@@ -400,10 +382,10 @@ btn.disabled = true;
 btn.style.opacity = '0.6';
 addLog('DEPLOY ENGINE: Initializing NeuralEdge Challenger inference pipeline...', 'secondary');
 setTimeout(() => {
-addLog('DEPLOY ENGINE: Loading Dual-Head Transformer weights (d=32, nh=4, nl=2)...', 'on-surface-variant');
+addLog('DEPLOY ENGINE: Loading Dual-Head Transformer weights (d=32, nh=4, nl=2)...', 'slate-400');
 }, 500);
 setTimeout(() => {
-addLog('DEPLOY ENGINE: Calibration threshold set to 0.65...', 'on-surface-variant');
+addLog('DEPLOY ENGINE: Calibration threshold set to 0.65...', 'slate-400');
 }, 1000);
 setTimeout(() => {
 addLog('DEPLOY ENGINE: Running forward pass through fine-tuned NeuralEdge Challenger...', 'primary');
@@ -422,15 +404,33 @@ btn.disabled = false;
 // View Full Logs button
 document.getElementById('btn-view-logs').addEventListener('click', function() {
   addLog('VIEW FULL LOGS: Exporting neural engine log buffer...', 'primary');
-  addLog('VIEW FULL LOGS: ' + document.getElementById('engine-logs').children.length + ' entries in current session.', 'on-surface-variant');
+  addLog('VIEW FULL LOGS: ' + document.getElementById('engine-logs').children.length + ' entries in current session.', 'slate-400');
 });
 
 refreshEngine();
-setInterval(refreshEngine, 30000);
+setInterval(refreshEngine, 10000);
+
+// Ticker persistence logic
+document.addEventListener("DOMContentLoaded", () => {
+  const ticker = document.getElementById("news-ticker");
+  if (ticker) {
+    const savedTime = sessionStorage.getItem("tickerStartTime");
+    const now = Date.now();
+    let startTime;
+    if (savedTime) {
+      startTime = parseInt(savedTime, 10);
+    } else {
+      startTime = now;
+      sessionStorage.setItem("tickerStartTime", startTime);
+    }
+    const elapsedSeconds = ((now - startTime) / 1000) % 45;
+    ticker.style.animationDelay = `-${elapsedSeconds}s`;
+  }
+});
 </script>
 <!-- Bottom Tab Bar (Mobile) -->
 <nav class="md:hidden fixed bottom-0 w-full z-50 h-16 bg-[#1c2026] border-t border-[#414752]/15 flex justify-around items-center">
-<a href="index.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
+<a href="terminal.html" class="flex flex-col items-center justify-center text-[#9ea7b3] h-full px-6">
 <span class="material-symbols-outlined">dashboard</span>
 <span class="text-[9px] font-medium uppercase tracking-widest mt-0.5">Terminal</span>
 </a>

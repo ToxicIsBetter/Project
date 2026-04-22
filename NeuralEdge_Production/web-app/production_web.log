@@ -1,0 +1,11 @@
+127.0.0.1 - - [21/Apr/2026 16:56:19] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:21] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:22] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:23] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:23] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:23] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:24] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:24] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 16:56:25] "GET /production_index.html HTTP/1.1" 304 -
+127.0.0.1 - - [21/Apr/2026 17:52:25] code 404, message File not found
+127.0.0.1 - - [21/Apr/2026 17:52:25] "GET /favicon.ico HTTP/1.1" 404 -
