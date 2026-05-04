@@ -4,7 +4,7 @@
 # This orchestrates the 100% Data Production Environment on isolated ports.
 
 PROJECT_ROOT="/home/shyam/UbuntuCode/CN 6000 Mental Wealth Professional Life 3 (Project)/Project"
-PROD_DIR="$PROJECT_ROOT/NeuralEdge_Production"
+PROD_DIR="$PROJECT_ROOT/Backend/Production"
 API_DIR="$PROD_DIR/api"
 WEB_DIR="$PROD_DIR/web-app"
 PYTHON_EXEC="$PROJECT_ROOT/.venv/bin/python3"

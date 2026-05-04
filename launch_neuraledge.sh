@@ -5,8 +5,8 @@
 
 # --- PATHS ---
 PROJECT_ROOT="/home/shyam/UbuntuCode/CN 6000 Mental Wealth Professional Life 3 (Project)/Project"
-API_DIR="$PROJECT_ROOT/Mango/FINAL_STRAW"
-WEB_DIR="$PROJECT_ROOT/showcase/web-app"
+API_DIR="$PROJECT_ROOT/Backend/Core_API_Service"
+WEB_DIR="$PROJECT_ROOT/Frontend/web-app"
 PYTHON_EXEC="$PROJECT_ROOT/.venv/bin/python3"
 
 # --- CLEANUP ---
