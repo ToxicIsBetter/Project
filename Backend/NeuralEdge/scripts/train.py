@@ -16,7 +16,7 @@ torch.manual_seed(SEED)
 # ── Paths ─────────────────────────────────────────────────────────────
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 ROOT_DIR   = os.path.dirname(SCRIPT_DIR) # NeuralEdge/
-DATA_DIR   = os.path.join(ROOT_DIR, 'data')
+DATA_DIR   = os.path.join(ROOT_DIR, '../Core_API_Service/data')
 MODEL_DIR  = os.path.join(ROOT_DIR, 'models')
 PLOT_DIR   = os.path.join(ROOT_DIR, 'plots')
 os.makedirs(MODEL_DIR, exist_ok=True)
@@ -228,10 +228,13 @@ def main():
     joblib.dump(sm, os.path.join(MODEL_DIR, 'scaler_head2_minmax.pkl'))
     joblib.dump(ss, os.path.join(MODEL_DIR, 'scaler_head2_std.pkl'))
     
-    with open(os.path.join(MODEL_DIR, 'feature_sets.json'), 'w') as f: json.dump({'final_h1': HEAD1_FEATURES, 'sentiment': HEAD2_FEATURES}, f)
-    with open(os.path.join(MODEL_DIR, 'metrics_finetuned.json'), 'w') as f: json.dump({'accuracy': acc, 'f1': f1, 'balanced_score': best_score, 'threshold': best_t}, f)
-
-    print(f"\n✅ Training Complete. Acc: {acc:.2%}, F1: {f1:.4f}, Score: {best_score:.4f}, T: {best_t:.2f}")
+    from sklearn.metrics import roc_auc_score
+    auc_score = roc_auc_score(y_te, t_probs)
+    print(f"\n✅ Training Complete. Acc: {acc:.2%}, F1: {f1:.4f}, Score: {best_score:.4f}, T: {best_t:.2f}, AUC: {auc_score:.4f}")
+    print("\nConfusion Matrix:")
+    print(confusion_matrix(y_te, t_preds))
+    print("\nClassification Report:")
+    print(classification_report(y_te, t_preds))
 
 if __name__ == "__main__":
     main()
