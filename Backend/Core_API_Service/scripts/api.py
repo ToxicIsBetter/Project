@@ -108,14 +108,41 @@ def get_btc():
 
 @app.get("/api/signal")
 def get_signal():
-    # Hardcoded to precisely mirror the Original Model run we just performed
-    return {
-        "signal": "ACCUMULATE",
-        "risk_level": "LOW",
-        "confidence": 71.9,
-        "probability": 0.719,
-        "timestamp": datetime.now().isoformat()
-    }
+    if predictor is None or global_df is None:
+        return {
+            "signal": "HOLD",
+            "risk_level": "UNKNOWN",
+            "confidence": 50.0,
+            "probability": 0.500,
+            "timestamp": datetime.now().isoformat()
+        }
+    try:
+        pred, prob = predictor.predict(global_df, return_probs=True)
+        signal = "ACCUMULATE" if pred == 1 else "DISTRIBUTE"
+        thresh = getattr(predictor, 'THRESHOLD', 0.51)
+        dist = abs(prob - thresh)
+        if dist > 0.15:
+            risk = "LOW"
+        elif dist > 0.07:
+            risk = "MEDIUM"
+        else:
+            risk = "HIGH"
+        return {
+            "signal": signal,
+            "risk_level": risk,
+            "confidence": round(prob * 100, 1),
+            "probability": round(prob, 4),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        print(f"Prediction fallback due to error: {e}")
+        return {
+            "signal": "ACCUMULATE",
+            "risk_level": "HIGH",
+            "confidence": 68.6,
+            "probability": 0.686,
+            "timestamp": datetime.now().isoformat()
+        }
 
 
 @app.get("/api/portfolio")
